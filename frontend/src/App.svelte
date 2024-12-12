@@ -1,37 +1,53 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './Counter.svelte'
-  import Chat from './components/Chat.svelte'
-  import { apiUrl, addMessage } from './api.js'
+  import Chat from './components/Chat.svelte';
+  import Sidebar from './components/Sidebar.svelte';
 
-  let messages = [{ username: 'gpt', content: 'hello, im gpt' }, {username:'fulano', content:"my brother is ciclano"}];
+  let messages = [
+    { username: 'gpt', content: 'hello, I am gpt' },
+    { username: 'fulano', content: 'my brother is ciclano' }
+  ];
+  let favorites: { username: string; content: string }[] = [];
   let username = 'Fulano';
   let message = '';
-  let error = '';
 
-  //again, this function is purely an example.
   async function handleAdd() {
     try {
-      messages = await addMessage({ username: username, content: message });
-      console.log(`messages: ${messages}`);
+      messages = [...messages, { username, content: message }];
       message = '';
-    } catch (e: any) {
-      error = e.message || e;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function addToFavorites(msg: { username: string; content: string }) {
+    if (!favorites.find(fav => fav.content === msg.content && fav.username === msg.username)) {
+      favorites = [...favorites, msg];
+      console.log('Favorites updated:', favorites); // Log para verificar o funcionamento
     }
   }
 </script>
 
 <main class="section">
   <div class="container" id="maincontainer">
-    <h3 class="title  has-text-centered">Chat component</h3>
-    <!--  Repare que passamos pro chat a função handleAdd definida aqui que sera chamada quando o botao for apertado-->
-    <Chat {handleAdd} bind:messages={messages} bind:message={message} />
+    <h3 class="title has-text-centered">Chat component</h3>
+    <div class="columns">
+      <div class="column is-three-quarters">
+        <Chat
+          {handleAdd}
+          bind:messages={messages}
+          bind:message={message}
+          {addToFavorites}
+        />
+      </div>
+      <div class="column">
+        <Sidebar {favorites} />
+      </div>
+    </div>
   </div>
 </main>
 
 <style>
-  #maincontainer{
+  #maincontainer {
     max-width: 90vh;
   }
 </style>
