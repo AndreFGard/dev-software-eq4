@@ -43,8 +43,14 @@ async def addData(msg: m.Message):
     de uma IA e adiciona no historico de mensagens
     e retorna o historico de mensagens"""
     #preencher aqui
-    messages =[msg]
-    messages.append(m.Message(username="fakegpt", content=openai.getReply()))
+    if (msg.username not in m.user_list):
+        user = m.User(msg.username)
+        m.user_list[msg.username] = user
+    else:
+        user = m.user_list[msg.username]
+    user.addMessage(msg)
+    user.addMessage(m.Message(username="assistant", content=openai.getReply()))
+    messages =user.getMessageHistory()
     return messages
 
 @app.post("/getMessages", response_model=List[m.GptMessage])
