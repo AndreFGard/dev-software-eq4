@@ -12,7 +12,7 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 class Settings(BaseSettings):
-    OPENAI_KEY: str = ""
+    OPENAI_KEY: str = ''
 
 settings=Settings()
 
@@ -32,7 +32,8 @@ app.add_middleware(
 )
 
 users = m.user_list
-openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY or False,openai_key=settings.OPENAI_KEY)
+openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,openai_key=settings.OPENAI_KEY)
+print(settings.OPENAI_KEY)
 
 
 @app.get("/")
