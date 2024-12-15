@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic_settings import BaseSettings
 from typing import List
 import model as m
 import uvicorn
@@ -10,6 +11,10 @@ import sys
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
+class Settings(BaseSettings):
+    OPENAI_KEY: str = ""
+
+settings=Settings()
 
 app = FastAPI()
 
@@ -27,7 +32,7 @@ app.add_middleware(
 )
 
 users = m.user_list
-openai = m.OpenaiInteface(useDummy=True)
+openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY or False,openai_key=settings.OPENAI_KEY)
 
 
 @app.get("/")
@@ -49,7 +54,8 @@ async def addData(msg: m.Message):
     else:
         user = m.user_list[msg.username]
     user.addMessage(msg)
-    user.addMessage(m.Message(username="assistant", content=openai.getReply()))
+    reply = await openai.reply(user)
+    user.addMessage(m.Message(username="assistant", content=reply ))
     messages =user.getMessageHistory()
     return messages
 

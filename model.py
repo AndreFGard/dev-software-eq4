@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 from typing import List
-import openai
+from openai import OpenAI, AsyncOpenAI
 import random
+import time
+import asyncio as aio
 
 class Message(BaseModel):
     username: str
@@ -15,29 +17,14 @@ class GptMessage(BaseModel):
 class City:
     name:str
 
-def answerDummy(*args, **kwargs):
+async def answerDummy(*args, **kwargs):
     buzzwords = [ "Dev Software", "Concepcao de artefatos", "????", "Forms", "Eigenvalues "
     "synergy", "pivot", ",", "mas também", "blockchain", ", além de ", "cloud-native", ".",
     "big data",]
+    await aio.sleep(2)
     return " ".join(random.sample(buzzwords, 3) )
 
 user_list = {}
-class OpenaiInteface:
-    """Essa classe proverÁ (quando isso for implementado) 
-    as respostas de um chatbot.
-    Essa classe deve preparar os parametros, prompts e outras coisas
-    Parameters:
-    useDummy (bool): usar um chatbot fake ou não;."""
-    def __init__(self, useDummy=True, **kwargs):
-        self.openai = None
-        self.getReply = answerDummy
-        if (useDummy):
-            #nao usar o chatgpt de verdade
-            self.openai = None
-        else:
-            #inicializar o modulo openai
-            #implementar aqui
-            pass
 
 
 class User():
@@ -55,6 +42,50 @@ class User():
     def getMessageHistory(self) -> List[Message]:
         return [Message(username= self.username if item.role == "user" else "assistant", content=item.content) for item in self.message_history]
     
+    def dumpHistory(self):
+        return[m.model_dump() for m in self.message_history]
+
+class OpenaiInteface:
+    """Essa classe proverÁ (quando isso for implementado) 
+    as respostas de um chatbot.
+    Essa classe deve preparar os parametros, prompts e outras coisas
+    Parameters:
+    useDummy (bool): usar um chatbot fake ou não;."""
+
+    def __init__(self, useDummy=True, openai_key="", **kwargs):
+        self.openai = None
+        self.__openai_key__ = openai_key
+        useDummy = useDummy or not openai_key
+        if (useDummy):
+            #nao usar o chatgpt de verdade
+            self.openai = None
+        else:
+            self.openai = AsyncOpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=self.__openai_key__
+            )
+
+        self.model='microsoft/phi-3-medium-128k-instruct:free'
+        self.__standard_prompt__ =[GptMessage(role='system',content='You are a quiet tralve planner.').model_dump()]
+    
+    async def reply(self, user:User):
+        if self.openai:
+            return await self.completion(user)
+        else: 
+            return await answerDummy(user)
+
+    async def completion(self, user: User):
+        choice = ""
+        messages=self.__standard_prompt__ + user.dumpHistory()
+        completion = await self.openai.chat.completions.create(
+            model=self.model,
+            messages=messages
+        )
+        return completion.choices[0].message.content
+
+
+        
+
 
 
 #exemplo#
