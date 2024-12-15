@@ -30,6 +30,17 @@ class Activity(BaseModel):
     short_description: str
     long_description: str
 
+class UserStatus(Enum):
+    DISCUSSING = 'discussing'
+    SUMMARIZING_ACTIVITIES = 'summarizing_activities'
+    MODIFYING_ACTIVITY = 'modifying_activity'
+
+prompts = {
+    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this.',
+    UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
+    Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
+    UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
+}
 
 user_list = {}
 
@@ -37,11 +48,13 @@ class User():
     username: str
     message_history: List[GptMessage]
     __activities__: dict[int, Activity]
-    
+    status: UserStatus = UserStatus.DISCUSSING
+
     def __init__(self, username="John Doe", message_history=[]):
         self.username = username
         self.message_history = message_history
         self.__activities__ = {}
+        self.status = UserStatus.DISCUSSING
 
     def addMessage(self, msg: Message):
         role = "assistant"
@@ -61,6 +74,7 @@ class User():
         else: self._activity_id_counter += 1
         
         self.__activities__[id] = act
+        
     
     def getActivities(self):
         return self.__activities__
@@ -90,8 +104,10 @@ class OpenaiInteface:
             )
 
         self.model='microsoft/phi-3-medium-128k-instruct:free'
-        self.__standard_prompt__ =[GptMessage(role='system',content='You are a quiet tralve planner.').model_dump()]
     
+    def getSystemMessage(self, user: User):
+        return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
+
     async def reply(self, user:User):
         if self.openai:
             return await self.completion(user)
@@ -100,11 +116,12 @@ class OpenaiInteface:
 
     async def completion(self, user: User):
         choice = ""
-        messages=self.__standard_prompt__ + user.dumpHistory()
+        messages=self.getSystemMessage(user) + user.dumpHistory()
         completion = await self.openai.chat.completions.create(
             model=self.model,
             messages=messages
         )
+        print(self.getSystemMessage(user) + user.dumpHistory())
         return completion.choices[0].message.content
 
 
