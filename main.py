@@ -1,18 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from pydantic_settings import BaseSettings
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import model as m
 import uvicorn
 import os
 import sys
-
-class Settings(BaseSettings):
-    PORT: int = 8000
-    openrouter_key: str = ""
-
-settings = Settings()
 
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
@@ -34,7 +27,7 @@ app.add_middleware(
 )
 
 users = m.user_list
-openai = m.OpenaiInteface(openai_key=settings.openai_key, useDummy=True)
+openai = m.OpenaiInteface(useDummy=True)
 
 
 @app.get("/")
@@ -50,8 +43,14 @@ async def addData(msg: m.Message):
     de uma IA e adiciona no historico de mensagens
     e retorna o historico de mensagens"""
     #preencher aqui
-    messages =[msg]
-    messages.append(m.Message(username="fakegpt", content=openai.getReply()))
+    if (msg.username not in m.user_list):
+        user = m.User(msg.username)
+        m.user_list[msg.username] = user
+    else:
+        user = m.user_list[msg.username]
+    user.addMessage(msg)
+    user.addMessage(m.Message(username="assistant", content=openai.getReply()))
+    messages =user.getMessageHistory()
     return messages
 
 @app.post("/getMessages", response_model=List[m.GptMessage])
@@ -64,4 +63,4 @@ async def getMessages(username:str) -> List[m.GptMessage]:
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=settings.PORT)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
