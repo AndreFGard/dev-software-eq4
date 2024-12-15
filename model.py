@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List
 import openai
 import random
+import pandas as pd
 import numpy as np
 
 # classe de mensagens do role: user
@@ -31,48 +32,53 @@ class City(BaseModel):
 
 class CityValidator:
     def __init__(self):
-        import json
-        filename="countrie_states_cities.json"
         fileurl='https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/refs/heads/master/json/countries%2Bstates%2Bcities.json'
-        f = None
+        
+        j = pd.read_json(fileurl)
 
-        try:
-            f = open(filename)
-        except:
-            import os
-            os.system(f"curl {fileurl} -o {filename}")
-            f = open(filename)
-
-        j = json.load(f)
-
-        countries = {ct["name"]:ct for ct in j}
-        cities ={}
+        countries = {j.loc[idx, "name"]:j.loc[idx, "states"] for idx in j.index}
+        cities = {}
         city_ids = {}
 
-        for ct in countries.values():
-            ct['states'] = {st["name"]:st for st in ct['states']}
-
-            for st in ct["states"].values():
-                st['cities'] = {city['name']:city for city in st['cities']}
-
-                for city in st['cities'].values():
+        for country, states in countries.items():
+            for state in states:
+                for city in state['cities']:
                     if city['name'] not in cities:
-                        cities[city['name']] = []
-                    
-                    cities[city['name']].append({'name':city['name'], 'state': st['name'], 'country': ct['name'], 'data':city, 'id':city['id']})
+                        cities[city['name']] = {}
+
+                    cities[city['name']] = {'name': city['name'], 'state': state['name'], 'country': country, 'data': city, 'id': city['id']}
                     city_ids[city['id']] = city
         
         self.countries = countries
         self.cities = cities
         self.city_ids = city_ids
 
-    #TODO
-    def city_matches_name(self, name:str) -> List[City]:
+    # considerar translocar estas funções para uma outra classe e instanciar ela para obter a base de dados
+
+    def identifier(self, city:str, state:str, country:str) -> int:
+        if not self.valid(city, state, country):
+            return -1
+        
+        return self.cities[city]['id']
+
+    def valid(self, city, state, country) -> bool:
+        if np.where(self.countries.keys() == country)[0].size == 0:
+            return False
+
+        if np.where(self.cities.keys() == city)[0].size == 0:
+            return False
+        
+        if np.where(self.cities[city]['state'] == state)[0].size == 0:
+            return False
+        
+        return True
+
+    def city_matches_name(self, name: str) -> List[City]:
         """"Retorna todas as cidades com o mesmo nome"""
         return self.cities['Recife']
     
     #TODO
-    def city_matches_name_state(self, name:str, state:str) -> List[City]:
+    def city_matches_name_state(self, name: str, state: str) -> List[City]:
         return self.cities['Recife'] # sample
 
 # classe que vai ter as informações de um lugar
@@ -137,9 +143,6 @@ class User():
 
 # banco de dados de usuarios (provisorio)
 user_list = {"André" : User(username="André", message_history=[GptMessage(role="user", content="Se estou lendo isso, é porque deu certo")])}
-
-# banco de dados de lugares (provisorio)
-database_lugares = {"País1" : {"Estado1" : np.array(['Cidade1'])}}
 
 #exemplo#
 rob = User(username="Robinson", message_history=[])
