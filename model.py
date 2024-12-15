@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List
+from enum import Enum
 from openai import OpenAI, AsyncOpenAI
 import random
 import time
@@ -24,15 +25,24 @@ async def answerDummy(*args, **kwargs):
     await aio.sleep(2)
     return " ".join(random.sample(buzzwords, 3) )
 
-user_list = {}
+class Activity(BaseModel):
+    name: str
+    short_description: str
+    long_description: str
 
+
+user_list = {}
 
 class User():
     username: str
     message_history: List[GptMessage]
+    __activities__: dict[int, Activity]
+    
     def __init__(self, username="John Doe", message_history=[]):
         self.username = username
         self.message_history = message_history
+        self.__activities__ = {}
+
     def addMessage(self, msg: Message):
         role = "assistant"
         if msg.username != "assistant":
@@ -44,6 +54,20 @@ class User():
     
     def dumpHistory(self):
         return[m.model_dump() for m in self.message_history]
+    
+    def addActivity(self, act: Activity,id=-1):
+        if id == -1 : 
+            id = self._activity_id_counter
+        else: self._activity_id_counter += 1
+        
+        self.__activities__[id] = act
+    
+    def getActivities(self):
+        return self.__activities__
+    
+    def dumpActivities(self):
+        return {id:act.model_dump for id,act in self.getActivities().items()}
+
 
 class OpenaiInteface:
     """Essa classe proverÁ (quando isso for implementado) 
