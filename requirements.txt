@@ -1,5 +1,6 @@
 annotated-types==0.7.0
 anyio==4.6.2.post1
+asyncio==3.4.3
 certifi==2024.8.30
 click==8.1.7
 distro==1.9.0
@@ -19,6 +20,7 @@ MarkupSafe==3.0.2
 mdurl==0.1.2
 openai==1.57.2
 pydantic==2.10.2
+pydantic-settings==2.7.0
 pydantic_core==2.27.1
 Pygments==2.18.0
 python-dotenv==1.0.1
