@@ -99,11 +99,11 @@ class OpenaiInteface:
             self.openai = None
         else:
             self.openai = AsyncOpenAI(
-                base_url="https://openrouter.ai/api/v1",
+                base_url="https://api.groq.com/openai/v1",
                 api_key=self.__openai_key__
             )
 
-        self.model='microsoft/phi-3-medium-128k-instruct:free'
+        self.model='llama-3.1-8b-instant'
     
     def getSystemMessage(self, user: User):
         return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
@@ -121,7 +121,6 @@ class OpenaiInteface:
             model=self.model,
             messages=messages
         )
-        print(self.getSystemMessage(user) + user.dumpHistory())
         return completion.choices[0].message.content
 
 
