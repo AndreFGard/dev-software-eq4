@@ -29,13 +29,27 @@
 		
 	}
 
-	/* Estilo para os itens de mensagem (caixas interno) */
+	/* Estilo para os itens de mensagem (caixas internas) */
 	.message-box {
 		background-color: var(--secondary-color); /*cor das caixas menores*/
 		color: var(--text-color); /*Cor do texto*/
 		padding: 25px; /*Tamanho das caixas menores*/
 		border-radius: 15px; /*Arredondamento das caixas internas*/
 		margin-bottom: 15px; /*espaço entre as caixas internas*/
+		max-width: 70%; /* Define a largura máxima da mensagem em relação à caixa principal */
+		word-wrap: break-word; /* Garante que palavras longas sejam quebradas */
+    	word-break: break-word; /* Compatibilidade adicional com navegadores antigos */
+	}
+
+	.message-box.left {
+		align-self: flex-start; /* Alinha mensagens do lado esquerdo */
+		background-color: var(--white); /* Cor da mensagem da GPT */
+	}
+
+	.message-box.right {
+		align-self: flex-end; /* Alinha mensagens do lado direito */
+		background-color: var(--secondary-color); /* Cor da mensagem do usuário */
+		color: var(--text-color); /* Cor do texto da mensagem do usuário */
 	}
 
 	/* Caixa de entrada de texto e botão */
@@ -50,8 +64,12 @@
 
 	/* Para as mensagens (box internos) não ultrapassarem a largura da caixa maior */
 	.messages-list {
-		max-height: 80vh; /*Ajuste para usar 80% da altura da tela */
-		overflow-y: auto; /*Adiciona barra de rolagem se necessário*/
+		display: flex;
+		flex-direction: column; /* Empilha as mensagens verticalmente */
+		align-items: flex-start; /* Por padrão, mensagens começam alinhadas à esquerda */
+		max-height: 60vh; /* Altura máxima da lista de mensagens */
+		overflow-y: auto; /* Adiciona barra de rolagem se necessário */
+		gap: 10px; /* Espaçamento entre as mensagens */
 	}
 
 	/*Efeito no botão*/
@@ -81,7 +99,7 @@
 	<h3>Messages:</h3>
 	<ul class="messages-list">
 		{#each messages as msg}
-			<li class="message-box">
+			<li class="message-box {msg.username === 'GPT' ? 'left' : 'right'}">
 				<strong>{msg.username}:</strong>
 				{msg.content}
 			</li>
