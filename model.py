@@ -1,9 +1,14 @@
 from pydantic import BaseModel
 from typing import List
-import openai
+from enum import Enum
+from openai import OpenAI, AsyncOpenAI
 import random
 import pandas as pd
 import numpy as np
+
+import time
+import asyncio as aio
+
 
 # classe de mensagens do role: user
 class Message(BaseModel):
@@ -96,39 +101,45 @@ class Place:
     def find(self, country, state, city) -> bool:
         return True
 
-def answerDummy(*args, **kwargs):
+async def answerDummy(*args, **kwargs):
     buzzwords = [ "Dev Software", "Concepcao de artefatos", "????", "Forms", "Eigenvalues "
     "synergy", "pivot", ",", "mas também", "blockchain", ", além de ", "cloud-native", ".",
     "big data",]
+    await aio.sleep(2)
     return " ".join(random.sample(buzzwords, 3) )
 
-class OpenaiInteface:
-    """Essa classe proverá (quando isso for implementado) 
-    as respostas de um chatbot.
-    Essa classe deve preparar os parametros, prompts e outras coisas
-    Parameters:
-    useDummy (bool): usar um chatbot fake ou não;."""
-    def __init__(self, useDummy=True, **kwargs):
-        self.openai = None
-        self.getReply = answerDummy
-        if (useDummy):
-            #nao usar o chatgpt de verdade
-            self.openai = None
-        else:
-            #inicializar o modulo openai
-            #implementar aqui
-            pass
 
-# classe de usuario
+class Activity(BaseModel):
+    name: str
+    short_description: str
+    long_description: str
+
+class UserStatus(Enum):
+    DISCUSSING = 'discussing'
+    SUMMARIZING_ACTIVITIES = 'summarizing_activities'
+    MODIFYING_ACTIVITY = 'modifying_activity'
+
+prompts = {
+    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this.',
+    UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
+    Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
+    UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
+}
+
+user_list = {}
+
 class User():
     username: str
     message_history: List[GptMessage]
-    
+    __activities__: dict[int, Activity]
+    status: UserStatus = UserStatus.DISCUSSING
+
     def __init__(self, username="John Doe", message_history=[]):
         self.username = username
         self.message_history = message_history
+        self.__activities__ = {}
+        self.status = UserStatus.DISCUSSING
 
-    # adiciona mensagem comm base na role
     def addMessage(self, msg: Message):
         role = "assistant"
 
@@ -139,10 +150,119 @@ class User():
     
     # retorna cada mensagem do historico no formato de Message
     def getMessageHistory(self) -> List[Message]:
-        return [Message(username=item.role, content=item.content) for item in self.message_history]
+
+        return [Message(username= self.username if item.role == "user" else "assistant", content=item.content) for item in self.message_history]
+    
+    def dumpHistory(self):
+        return[m.model_dump() for m in self.message_history]
+    
+    def addActivity(self, act: Activity,id=-1):
+        if id == -1 : 
+            id = self._activity_id_counter
+        else: self._activity_id_counter += 1
+        
+        self.__activities__[id] = act
+        
+    
+    def getActivities(self):
+        return self.__activities__
+    
+    def dumpActivities(self):
+        return {id:act.model_dump for id,act in self.getActivities().items()}
+
+
+class OpenaiInteface:
+    """Essa classe proverÁ (quando isso for implementado) 
+    as respostas de um chatbot.
+    Essa classe deve preparar os parametros, prompts e outras coisas
+    Parameters:
+    useDummy (bool): usar um chatbot fake ou não;."""
+
+    def __init__(self, useDummy=True, openai_key="", **kwargs):
+        self.openai = None
+        self.__openai_key__ = openai_key
+        useDummy = useDummy or not openai_key
+        if (useDummy):
+            #nao usar o chatgpt de verdade
+            self.openai = None
+        else:
+            self.openai = AsyncOpenAI(
+                base_url="https://api.groq.com/openai/v1",
+                api_key=self.__openai_key__
+            )
+
+        self.model='llama-3.1-8b-instant'
+    
+    def getSystemMessage(self, user: User):
+        return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
+
+    async def reply(self, user:User):
+        if self.openai:
+            return await self.completion(user)
+        else: 
+            return await answerDummy(user)
+
+    async def completion(self, user: User):
+        choice = ""
+        messages=self.getSystemMessage(user) + user.dumpHistory()
+        completion = await self.openai.chat.completions.create(
+            model=self.model,
+            messages=messages
+        )
+        return completion.choices[0].message.content
+
+
 
 # banco de dados de usuarios (provisorio)
 user_list = {"André" : User(username="André", message_history=[GptMessage(role="user", content="Se estou lendo isso, é porque deu certo")])}
+
+class City(BaseModel):
+    name:str
+    state:str
+    country:str
+    data:dict
+    id: int
+
+class CityValidator:
+    def __init__(self):
+        import json
+        filename="countrie_states_cities.json"
+        fileurl='https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/refs/heads/master/json/countries%2Bstates%2Bcities.json'
+        f = None
+        try:
+            f = open(filename)
+        except:
+            import os
+            os.system(f"curl {fileurl} -o {filename}")
+            f = open(filename)
+        j = json.load(f)
+        countries = {ct["name"]:ct for ct in j}
+        cities ={}
+        city_ids = {}
+        for ct in countries.values():
+            ct['states'] = {st["name"]:st for st in ct['states']}
+            for st in ct["states"].values():
+                st['cities'] = {city['name']:city for city in st['cities']}
+                for city in st['cities'].values():
+                    if city['name'] not in cities:
+                        cities[city['name']] = []
+                    
+                    cities[city['name']].append({'name':city['name'], 'state': st['name'], 'country': ct['name'], 'data':city, 'id':city['id']})
+                    city_ids[city['id']] = city
+        
+        self.countries = countries
+        self.cities = cities
+        self.city_ids = city_ids
+
+    #TODO
+    def city_matches_name(self, name:str) ->List[City]:
+        """"Retorna todas as cidades com o mesmo nome"""
+        return self.cities['Recife']
+        pass
+    
+    #TODO
+    def city_matches_name_state(name:str, state:str) -> List[City]:
+        pass
 
 #exemplo#
 rob = User(username="Robinson", message_history=[])
