@@ -29,13 +29,10 @@
 		box-shadow: 0 4px 1px var(--black); /*Sombras das caixas*/
 		color: var(--white); /*Cor de "Messages:"*/
 		padding: 35px; /*Tamanho ou espaçamento das bordas*/
-		width: 100%; /*Tamanho da caixa de texto*/
-		max-width: 600px; /*Largura da caixa*/
 		height: 78vh; /* Define a altura para a tela inteira */
 		border-radius: 30px; /*Arredondamento das bordas*/
 		position: relative;
 		display: flex;
-		left: -150px; /* Ajuste o posicionamento conforme necessário */
 		flex-direction: column;
 		justify-content: flex-end; 
 	}

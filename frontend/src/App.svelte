@@ -30,8 +30,8 @@
 </script>
 
 <main class="section">
-  <div class="container">
-    <h3 class="title  has-text-centered">Mape.ia✈️</h3>
+  <div class="container" id='chat-cont'>
+    <h3 class="title  has-text-centered" >Mape.ia✈️</h3>
     <Chat {handleAdd} bind:messages={messages} bind:message={message}/>
     {#if error}
       <p class="error">{error}</p>
@@ -40,6 +40,10 @@
 </main>
 
 <style>
+  #chat-cont {
+    max-width: 1000; /*Largura da caixa*/
+
+  }
    .container {
     max-width: 90vh;
     margin: auto;
@@ -48,7 +52,6 @@
 
   .title {
     text-align: left; /* Alinha o título à esquerda */
-    margin-left: -300px; /* Ajuste o valor para mover mais ou menos para a esquerda */
     margin-top: -10px; /* Espaçamento acima */
     margin-bottom: 20px; /* Espaçamento abaixo */
     font-size: 2.0rem; /* Tamanho do título */
