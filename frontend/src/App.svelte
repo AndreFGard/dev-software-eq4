@@ -6,8 +6,8 @@
   import { apiUrl, addMessage } from './api.js'
 
   let messages = [
-    { username: 'gpt', content: 'hello, im gpt' },
-    {username:'fulano', content:"my brother is ciclano"}
+    { username: 'GPT', content: 'hello, im gpt' },
+    {username:'User', content:"can you help me?"}
   ];
   let username = 'Fulano';
   let message = '';
