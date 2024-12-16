@@ -6,8 +6,8 @@
   import { apiUrl, addMessage } from './api.js'
 
   let messages = [
-    { username: 'GPT', content: 'hello, im gpt' },
-    {username:'User', content:"can you help me?"}
+    { username: 'GPT', content: 'Hello! Im GPT.' },
+    {username:'User', content:"Can you help me?"}
   ];
   let username = 'Fulano';
   let message = '';
@@ -31,7 +31,7 @@
 
 <main class="section">
   <div class="container">
-    <h3 class="title  has-text-centered">Chat component</h3>
+    <h3 class="title  has-text-centered">Mape.ia✈️</h3>
     <Chat {handleAdd} bind:messages={messages} bind:message={message}/>
     {#if error}
       <p class="error">{error}</p>
@@ -40,9 +40,19 @@
 </main>
 
 <style>
-  .container {
+   .container {
     max-width: 90vh;
-    margin: 0 auto;
+    margin: auto;
+    text-align: left; /* Garante que o título siga para a esquerda */
+  }
+
+  .title {
+    text-align: left; /* Alinha o título à esquerda */
+    margin-left: -300px; /* Ajuste o valor para mover mais ou menos para a esquerda */
+    margin-top: -10px; /* Espaçamento acima */
+    margin-bottom: 20px; /* Espaçamento abaixo */
+    font-size: 2.0rem; /* Tamanho do título */
+    color: rgb(39, 121, 168); /* Cor do título */
   }
 
   .error {
