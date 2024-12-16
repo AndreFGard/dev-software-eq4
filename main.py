@@ -11,6 +11,7 @@ import sys
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
+
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
 
@@ -34,7 +35,6 @@ app.add_middleware(
 users = m.user_list
 openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,openai_key=settings.OPENAI_KEY)
 print(settings.OPENAI_KEY)
-
 
 @app.get("/")
 async def root():
@@ -64,10 +64,11 @@ async def addData(msg: m.Message):
 async def getMessages(username:str) -> List[m.GptMessage]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
-    pass
 
+    if username not in m.user_list.keys():
+        m.user_list[username] = m.User(username=username)
 
-
+    return m.user_list[username].message_history
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
