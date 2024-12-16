@@ -70,6 +70,7 @@
 		max-height: 60vh; /* Altura máxima da lista de mensagens */
 		overflow-y: auto; /* Adiciona barra de rolagem se necessário */
 		gap: 10px; /* Espaçamento entre as mensagens */
+
 	}
 
 	/*Efeito no botão*/
@@ -95,7 +96,7 @@
 </style>
 
 <!--Estrutura HTML principal-->
-<div class="box"> 
+<div class="box" style="max-height:30%;"> 
 	<h3>Messages:</h3>
 	<ul class="messages-list">
 		{#each messages as msg}
