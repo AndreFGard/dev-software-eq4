@@ -1,6 +1,8 @@
 <script lang="ts"> //indica que o código dentro dessa tag está em TypeScript
+  import { apiUrl } from "../api";
 	//exporta as variáveis que serão usadas fora do componente Svelte
-	export let messages: { username: string; content: string }[] = []; //Lista de mensagens exibidas no chat
+	import type { Message } from "../api";
+	export let messages: Message[] = []; //Lista de mensagens exibidas no chat
 	export let message = "Hello sir"; //Mensagem inicial de exemplo
 	export let handleAdd: () => void; //Função que será chamada ao clicar no botão de enviar mensagem
 </script>
@@ -66,6 +68,9 @@
 		color: var(--text-color); /* Cor do texto da mensagem do usuário */
 	}
 
+	.message-box.activity {
+		font-style: italic; /* Estilo de fonte itálico para mensagens de atividade */
+	}
 	/* Caixa de entrada de texto e botão */
 	.input, 
 	.button {
@@ -120,7 +125,7 @@
 	<h3>Messages:</h3>
 	<ul class="messages-list">
 		{#each messages as msg}
-			<li class="message-box {msg.username === 'GPT' ? 'left' : 'right'}">
+			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'} {msg.is_activity ? 'activity' : ''}">
 				<strong>{msg.username}:</strong>
 				{msg.content}
 			</li>

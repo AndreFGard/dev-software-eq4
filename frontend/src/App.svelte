@@ -4,12 +4,13 @@
   import Counter from './Counter.svelte'
   import Chat from './components/Chat.svelte'
   import { apiUrl, addMessage } from './api.js'
+  import type {Message} from './api.js'
 
   let messages = [
-    { username: 'GPT', content: 'Hello! Im GPT.' },
+    { username: 'assistant', content: 'Hello! Im GPT.' },
     {username:'User', content:"Can you help me?"}
   ];
-  let username = 'Fulano';
+  let username = 'User';
   let message = '';
   let error = '';
 
@@ -20,7 +21,7 @@
     return;
     }
     try{
-      messages = await addMessage({ username, content: message });
+      messages = await addMessage({ username, content: message, is_activity:false });
       message = '';
     } catch (e: any) {
       error = e.message || e;

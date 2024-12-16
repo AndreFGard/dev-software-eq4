@@ -14,6 +14,7 @@ import asyncio as aio
 class Message(BaseModel):
     username: str
     content: str
+    is_activity: bool = False
 
 # classe de mensagens do estilo gpt, o content é obtido pelo Message.content
 class GptMessage(BaseModel):
