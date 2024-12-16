@@ -50,7 +50,7 @@
 
 	/* Para as mensagens (box internos) não ultrapassarem a largura da caixa maior */
 	.messages-list {
-		max-height: 80vh; /*Ajuste para usar 80% da altura da tela */
+		max-height: 70vh; /*Ajuste para usar 80% da altura da tela */
 		overflow-y: auto; /*Adiciona barra de rolagem se necessário*/
 	}
 
@@ -77,7 +77,7 @@
 </style>
 
 <!--Estrutura HTML principal-->
-<div class="box"> 
+<div class="box" style="max-height:30%;"> 
 	<h3>Messages:</h3>
 	<ul class="messages-list">
 		{#each messages as msg}
