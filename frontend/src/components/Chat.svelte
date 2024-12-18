@@ -132,14 +132,6 @@
 		font-weight: bold;
 	}
 
-	.placeholder {
-		background-color: red;
-		background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 75%);
-		background-size: 200% 100%;
-		animation: loading 1.5s infinite;
-		border-radius: 4px;
-		color: transparent;
-  }
 </style>
 
 <!--Estrutura HTML principal-->
