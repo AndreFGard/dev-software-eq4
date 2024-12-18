@@ -60,15 +60,16 @@ async def addData(msg: m.Message):
     messages =user.getMessageHistory()
     return messages
 
-@app.post("/getMessages", response_model=List[m.GptMessage])
-async def getMessages(username:str) -> List[m.GptMessage]:
+@app.get("/getMessages", response_model=List[m.Message])
+async def getMessages(username:str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
 
     if username not in m.user_list.keys():
         m.user_list[username] = m.User(username=username)
 
-    return m.user_list[username].message_history
+    return m.user_list[username].getMessageHistory()
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

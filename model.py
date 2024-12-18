@@ -137,6 +137,9 @@ class User():
 
     def __init__(self, username="John Doe", message_history=[]):
         self.username = username
+        if not message_history:
+            message_history = [GptMessage(role='assistant', content="Hello! I'm a travel planner. Where would you like to travel today?")]
+            
         self.message_history = message_history
         self.__activities__ = {}
         self.status = UserStatus.DISCUSSING

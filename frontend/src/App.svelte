@@ -3,8 +3,9 @@
   import viteLogo from '/vite.svg'
   import Counter from './Counter.svelte'
   import Chat from './components/Chat.svelte'
-  import { apiUrl, addMessage } from './api.js'
+  import { apiUrl, addMessage, getMessages } from './api.js'
   import type {Message} from './api.js'
+  import { onMount } from 'svelte';
 
   let messages = [
     { username: 'assistant', content: 'Hello! Im GPT.' },
@@ -13,6 +14,15 @@
   let username = 'User';
   let message = '';
   let error = '';
+
+  onMount(async () => {
+    try {
+      messages = await getMessages(username);
+    } catch (e: any) {
+      error = e.message || e;
+    }
+  });
+
 
   //conferir se a mensagem está vazia
   async function handleAdd() {
