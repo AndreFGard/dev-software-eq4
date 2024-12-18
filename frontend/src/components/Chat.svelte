@@ -2,9 +2,23 @@
   import { apiUrl } from "../api";
 	//exporta as variáveis que serão usadas fora do componente Svelte
 	import type { Message } from "../api";
+	import {marked} from 'marked';
 	export let messages: Message[] = []; //Lista de mensagens exibidas no chat
 	export let message = "Hello sir"; //Mensagem inicial de exemplo
 	export let handleAdd: () => void; //Função que será chamada ao clicar no botão de enviar mensagem
+	
+	let isLoading = false;
+	async function handleSend() {
+		isLoading = true;
+		
+		await handleAdd();
+		isLoading = false;
+	}
+
+	 function renderMarkdown(content: string) {
+		return  marked(content);
+	}
+	
 </script>
 
 <style>
@@ -117,6 +131,15 @@
 		color: rgb(19, 82, 119);
 		font-weight: bold;
 	}
+
+	.placeholder {
+		background-color: red;
+		background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.1) 75%);
+		background-size: 200% 100%;
+		animation: loading 1.5s infinite;
+		border-radius: 4px;
+		color: transparent;
+  }
 </style>
 
 <!--Estrutura HTML principal-->
@@ -126,19 +149,19 @@
 		{#each messages as msg}
 			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'} {msg.is_activity ? 'activity' : ''}">
 				<strong>{msg.username}:</strong>
-				{msg.content}
+				{@html renderMarkdown(msg.content)}
 			</li>
 		{/each}
 	</ul>
 
-	<div class="field">
+	<div class="field {isLoading ? 'placeholder' : ''}">
 		<input
 			class="input"
 			type="text"
 			placeholder="Type your message"
 			bind:value={message}
 		/>
-		<button class="button" on:click={handleAdd}>Send</button>
+		<button class="button {isLoading ? 'is-loading' : ''}" on:click={handleSend}>Send</button>
 	</div>
 </div>
 
