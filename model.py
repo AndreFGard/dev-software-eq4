@@ -103,9 +103,7 @@ class Place:
         return True
 
 async def answerDummy(*args, **kwargs):
-    buzzwords = [ "Dev Software", "Concepcao de artefatos", "????", "Forms", "Eigenvalues "
-    "synergy", "pivot", ",", "mas também", "blockchain", ", além de ", "cloud-native", ".",
-    "big data",]
+    buzzwords = ["""**Rio de Janeiro**\n\nHere are some activities you can do in Rio de Janeiro:\n\n****Beach activities:***\n\n* **Visit Copacabana Beach:** One of the most famous beaches in the world, with 4 kilometers of white sand and crystal-clear waters.\n* **Take a sunset stroll along Ipanema Beach:** Enjoy the stunning views, street performers, and lively atmosphere.\n* **Surfing or paddleboarding in São Conrado:** Ride the waves and enjoy the breathtaking views of the Sugarloaf Mountain.\n\n****Hiking and outdoor adventures:***\n\n* **Hike to the top of Sugarloaf Mountain:** Take in the stunning views of Guanabara Bay and the city skyline.\n* **Explore the Tijuca Forest:** Hike through the lush rainforest and visit the iconic Christ the Redeemer statue.\n* **Take a cable car ride to the top of Morro da Urca:** Enjoy panoramic views of the city and the ocean.\n\n****Cultural experiences:***\n\n* **Visit the Christ the Redeemer statue:** One of the most iconic landmarks in the world, with stunning views of the city.\n* **Explore the Museums:** Rio has a wealth of museums, including the National Museum, the Museum of Modern Art, and the Museum of Brazilian History.\n* **Attend a Carnival parade:** Experience the vibrant culture of Rio de Janeiro during the famous Carnival celebrations.\n\n****Food and drink:***\n\n* **Try some traditional Brazilian cuisine:** Enjoy feijoada, churrasco, and other delicious local dishes.\n* **Visit a traditional Brazilian bakery:** Indulge in delicious pastries and baked goods.\n* **Take a caipirinha-making class:** Learn how to make the national drink of Brazil, a refreshing cocktail made with cachaça and lime.\n\nThese are just a few of the many amazing activities you can do in Rio de Janeiro. Is there anything specific you're interested in doing or seeing?"""]
     await aio.sleep(2)
     return " ".join(random.sample(buzzwords, 3) )
 
@@ -139,7 +137,7 @@ class User():
         self.username = username
         if not message_history:
             message_history = [GptMessage(role='assistant', content="Hello! I'm a travel planner. Where would you like to travel today?")]
-            
+
         self.message_history = message_history
         self.__activities__ = {}
         self.status = UserStatus.DISCUSSING
@@ -195,7 +193,7 @@ class OpenaiInteface:
                 api_key=self.__openai_key__
             )
 
-        self.model='llama-3.1-8b-instant'
+        self.model='llama3-8b-8192'
     
     def getSystemMessage(self, user: User):
         return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
