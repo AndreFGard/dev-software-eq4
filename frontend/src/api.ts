@@ -1,8 +1,9 @@
 export const apiUrl= import.meta.env.VITE_API_URL
 
-interface Message{
+export interface Message{
     username: string;
     content:string;
+    is_activity?:boolean;
 }
 
 
