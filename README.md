@@ -10,11 +10,11 @@
 
 ###
 
-<h4 align="left">Project:</h4>
+<h4 align="left">Componentes do projeto:</h4>
 
 ###
 
-<h5 align="left">- frontend <br>-  backend API<br>- database <br>- scripts <br>- tests <br>- docker-compose.yml</h5>
+<h5 align="left">- frontend <br>-  backend API<br>- database <br>- scripts <br>- Dockerfile</h5>
 
 ###
 
@@ -22,7 +22,17 @@
 
 ###
 
-<h5 align="left">No windows, abra uma shell Git Bash antes de proceder Para preparar o ambiente de desenvolvimento no Linux, MacOS, BSD ou outros sistemas com o shell bash, execute:</h5>
+No windows, abra uma shell Git Bash antes de proceder.
+
+Requirementos:
+- python 3.12 [atenção especial para o MacOS](https://www.python.org/downloads/)
+- pip
+- node
+- uma chave de api do groq.com
+
+Todos exceto o python serão instalados automaticamente no passo seguinte.
+
+Para preparar o ambiente de desenvolvimento no Linux, MacOS, BSD ou outros sistemas com o shell bash, execute:
 
 ```bash
 git clone https://github.com/AndreFGard/dev-software-eq4
@@ -37,9 +47,10 @@ bash install_tools.sh
 ###
 
 <h4 align="left">No Windows:</h4>
+Usando um shell gitbash,
 
 ```bash
-frontend_windows.sh
+bash frontend_windows.sh
 ```
 
 ###
@@ -54,7 +65,7 @@ npm run dev
 ###
 
 <h2 align="left">Executar Backend:</h2>
-
+configure a env var OPENAI_KEY para a sua chave de api do groq.com
 ```bash
 fastapi run main.py
 ```
@@ -63,58 +74,7 @@ fastapi run main.py
 
 <h2 align="left">Passos tomados no desenvolvimento</h2>
 
-###
-
-<h5 align="left">Svelte puro com vite: npm create vite@latest -> svelte -> typescript</h5>
-
-###
+- Determinação das tecnologias:
+    - Foi escolhido FastAPI como backend e o Svelte.js como framework frontend, com o uso do pydantic e do typescript, respectivamente, para facilitar a validação de tipos e o desenvolvimento do projeto.
 
 
-
-
-
-
-
-readme anterior:
-# ✈️ Mape.ia
-
-# Estrutura do diretório
-- Esboço da estrutura
-
-```
-project/
-|── frontend/ # interface do usuário
-|── backend/ # aplicação do servidor, API
-|── database/ # arquivos relacionados ao banco de dados
-|── scripts/ # scripts de inicialização e deploy
-|── tests/ # testes do projeto
-|── docker-compose.yml # opcional, configuração do ambiente
-```
-
-## Como executar:
-No windows, abra uma shell Git Bash antes de proceder
-Para preparar o ambiente de desenvolvimento no Linux, MacOS, BSD ou outros sistemas com o shell **bash**, execute:
-```bash
-git clone https://github.com/AndreFGard/dev-software-eq4
-cd dev-software-eq4
-bash install_tools.sh
-```
-
-### Executar frontend
-Depois Para executar o frontend, execute
-- No Windows: ``bash frontend_windows.sh``
-- No Linux e MacOS:
-```bash
-cd frontend
-npm run dev
-```
-
-
-### Executar backend:
-```bash
-fastapi run main.py
-```
-
-
-### Passos tomados no desenvolvimento
-- Svelte puro com vite: npm create vite@latest ->  svelte -> typescript
