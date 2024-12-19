@@ -103,7 +103,7 @@ class Place:
         return True
 
 async def answerDummy(*args, **kwargs):
-    buzzwords = [" ", "- **Design Science Research**:\n1. isso é uma lista\n2. ainda é uma lista", ""]
+    buzzwords = ["voce nao esta usando o chatgpt, forneca uma OPENAI_KEY\n", "- **Design Science Research**:\n1. isso é uma lista\n2. ainda é uma lista", ""]
     await aio.sleep(2)
     return " ".join(random.sample(buzzwords, 3) )
 

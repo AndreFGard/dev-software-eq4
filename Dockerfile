@@ -21,10 +21,11 @@ WORKDIR /app
 
 
 # Copy the FastAPI app
-COPY main.py .
+COPY ./* /app
 
 # Install FastAPI and Uvicorn
-RUN pip install fastapi[standard] uvicorn
+RUN pip install pydantic-settings
+RUN pip install -r requirements.txt
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
