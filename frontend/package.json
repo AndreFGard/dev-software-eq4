@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "env VITE_API_URL=http://127.0.0.1:8000 vite",
-    "build": "env VITE_API_URL=https://google.com vite build",
+    "build": "env VITE_API_URL=http://127.0.0.1:8000 vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
   },
@@ -17,5 +17,8 @@
     "tslib": "^2.8.1",
     "typescript": "~5.6.2",
     "vite": "^6.0.1"
+  },
+  "dependencies": {
+    "marked": "^15.0.4"
   }
 }
