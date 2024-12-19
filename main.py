@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
+from fastapi import staticfiles
 from typing import List
 import model as m
 import uvicorn
@@ -21,6 +22,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:5173", 
+    "http://127.0.0.1:5173", 
     os.getenv("FRONTEND_URL", "https://production.com") 
 ]
 
@@ -38,7 +40,7 @@ print(settings.OPENAI_KEY)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return "Please access index.html"
 
 messagesyet=[]
 
@@ -70,6 +72,10 @@ async def getMessages(username:str) -> List[m.Message]:
 
     return m.user_list[username].getMessageHistory()
 
-
+if os.path.exists('frontend/dist'):
+    app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html='True'), name="static")
+else:
+    print("Not serving static files, please build them")
+    
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
