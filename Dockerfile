@@ -13,6 +13,8 @@ RUN npm --prefix frontend install
 
 # Build the Vite project
 RUN npm --prefix frontend run build
+# Copy the built files from the build stage
+COPY --from=build-stage /app/frontend/dist /app/frontend/dist
 
 # Stage 2: Run the FastAPI app
 FROM python:3.12-alpine
