@@ -20,15 +20,9 @@ settings=Settings()
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173", 
-    "http://127.0.0.1:5173", 
-    os.getenv("FRONTEND_URL", "https://production.com") 
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,6 +70,6 @@ if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html='True'), name="static")
 else:
     print("Not serving static files, please build them")
-    
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
