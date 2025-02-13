@@ -1,18 +1,41 @@
 <script lang="ts">
-  import Chat from './components/Chat.svelte';
-  import Sidebar from './components/Sidebar.svelte';
+
+  import svelteLogo from './assets/svelte.svg'
+  import viteLogo from '/vite.svg'
+  import Counter from './Counter.svelte'
+  import Chat from './components/Chat.svelte'
+  import { apiUrl, addMessage, getMessages } from './api.js'
+  import type {Message} from './api.js'
+  import { onMount } from 'svelte';
+  let favorites: { username: string; content: string }[] = [];
+
+   import Sidebar from './components/Sidebar.svelte';
 
   let messages = [
-    { username: 'gpt', content: 'hello, I am gpt' },
-    { username: 'fulano', content: 'my brother is ciclano' }
+    { username: 'assistant', content: 'Hello! Im GPT.' },
+    {username:'User', content:"Can you help me?"}
   ];
-  let favorites: { username: string; content: string }[] = [];
-  let username = 'Fulano';
+  let username = 'User';
   let message = '';
 
-  async function handleAdd() {
+
+  onMount(async () => {
     try {
-      messages = [...messages, { username, content: message }];
+      messages = await getMessages(username);
+    } catch (e: any) {
+      error = e.message || e;
+    }
+  });
+
+
+  //conferir se a mensagem está vazia
+  async function handleAdd() {
+    if (!message.trim()){
+    error = 'Message cannot be empty';
+    return;
+    }
+    try{
+      messages = await addMessage({ username, content: message, is_activity:false });
       message = '';
     } catch (e) {
       console.error(e);
@@ -25,29 +48,50 @@
       console.log('Favorites updated:', favorites); // Log para verificar o funcionamento
     }
   }
+
 </script>
 
 <main class="section">
-  <div class="container" id="maincontainer">
-    <h3 class="title has-text-centered">Chat component</h3>
-    <div class="columns">
-      <div class="column is-three-quarters">
-        <Chat
-          {handleAdd}
-          bind:messages={messages}
-          bind:message={message}
-          {addToFavorites}
-        />
-      </div>
-      <div class="column">
-        <Sidebar {favorites} />
-      </div>
-    </div>
+
+  <div class="container" id='chat-cont'>
+    <h3 class="title  has-text-centered" >Mape.ia✈️</h3>
+    <Chat {handleAdd} bind:messages={messages} bind:message={message} {addToFavorites}/>
+    {#if error}
+      <p class="error">{error}</p>
+    {/if}
   </div>
 </main>
 
 <style>
-  #maincontainer {
+
+  #chat-cont {
+    max-width: 1000; /*Largura da caixa*/
+
+  }
+   .container {
     max-width: 90vh;
+    margin: auto;
+    text-align: left; /* Garante que o título siga para a esquerda */
+  }
+
+  .title {
+    text-align: left; /* Alinha o título à esquerda */
+    margin-top: -10px; /* Espaçamento acima */
+    margin-bottom: 20px; /* Espaçamento abaixo */
+    font-size: 2.0rem; /* Tamanho do título */
+    color: rgb(39, 121, 168); /* Cor do título */
+  }
+
+  .error {
+    color: rgb(207, 55, 55);
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      max-width: 100%;
+      padding: 1rem;
+    }
   }
 </style>

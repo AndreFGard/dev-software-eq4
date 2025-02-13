@@ -13,6 +13,8 @@ RUN npm --prefix frontend install
 
 # Build the Vite project
 RUN npm --prefix frontend run build
+# Copy the built files from the build stage
+COPY --from=build-stage /app/frontend/dist /app/frontend/dist
 
 # Stage 2: Run the FastAPI app
 FROM python:3.12-alpine
@@ -21,10 +23,11 @@ WORKDIR /app
 
 
 # Copy the FastAPI app
-COPY main.py .
+COPY ./* /app
 
 # Install FastAPI and Uvicorn
-RUN pip install fastapi[standard] uvicorn
+RUN pip install pydantic-settings
+RUN pip install -r requirements.txt
 
 # Expose the port FastAPI will run on
 EXPOSE 8000

@@ -1,8 +1,9 @@
 export const apiUrl= import.meta.env.VITE_API_URL
 
-interface Message{
+export interface Message{
     username: string;
     content:string;
+    is_activity?:boolean;
 }
 
 
@@ -13,6 +14,17 @@ export async function addMessage(msg: Message){
         'Content-Type': 'application/json',
         },
         body: JSON.stringify(msg),
+    })
+    console.log(response);
+    return response.json()
+}
+
+export async function getMessages(username: string): Promise<Message[]>{
+    const response = await fetch(`${apiUrl}/getMessages?username=${encodeURIComponent(username)}`, {
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        }
     })
     console.log(response);
     return response.json()
