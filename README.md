@@ -32,7 +32,11 @@ Requirementos:
 
 Todos exceto o python serão instalados automaticamente no passo seguinte.
 
-Para preparar o ambiente de desenvolvimento no Linux, MacOS, BSD ou outros sistemas com o shell bash, execute:
+
+## Como executar:
+No windows, abra uma shell Git Bash antes de proceder
+Para preparar o ambiente de desenvolvimento no Linux, MacOS, BSD ou outros sistemas com o shell **bash**, execute:
+
 
 ```bash
 git clone https://github.com/AndreFGard/dev-software-eq4

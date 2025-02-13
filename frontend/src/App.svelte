@@ -1,4 +1,5 @@
 <script lang="ts">
+
   import svelteLogo from './assets/svelte.svg'
   import viteLogo from '/vite.svg'
   import Counter from './Counter.svelte'
@@ -6,6 +7,9 @@
   import { apiUrl, addMessage, getMessages } from './api.js'
   import type {Message} from './api.js'
   import { onMount } from 'svelte';
+  let favorites: { username: string; content: string }[] = [];
+
+   import Sidebar from './components/Sidebar.svelte';
 
   let messages = [
     { username: 'assistant', content: 'Hello! Im GPT.' },
@@ -13,7 +17,7 @@
   ];
   let username = 'User';
   let message = '';
-  let error = '';
+
 
   onMount(async () => {
     try {
@@ -33,17 +37,25 @@
     try{
       messages = await addMessage({ username, content: message, is_activity:false });
       message = '';
-    } catch (e: any) {
-      error = e.message || e;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function addToFavorites(msg: { username: string; content: string }) {
+    if (!favorites.find(fav => fav.content === msg.content && fav.username === msg.username)) {
+      favorites = [...favorites, msg];
+      console.log('Favorites updated:', favorites); // Log para verificar o funcionamento
     }
   }
 
 </script>
 
 <main class="section">
+
   <div class="container" id='chat-cont'>
     <h3 class="title  has-text-centered" >Mape.ia✈️</h3>
-    <Chat {handleAdd} bind:messages={messages} bind:message={message}/>
+    <Chat {handleAdd} bind:messages={messages} bind:message={message} {addToFavorites}/>
     {#if error}
       <p class="error">{error}</p>
     {/if}
@@ -51,6 +63,7 @@
 </main>
 
 <style>
+
   #chat-cont {
     max-width: 1000; /*Largura da caixa*/
 

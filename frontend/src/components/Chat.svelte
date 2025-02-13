@@ -1,3 +1,6 @@
+
+	export let addToFavorites: (msg: { username: string; content: string }) => void;
+
 <script lang="ts"> //indica que o código dentro dessa tag está em TypeScript
   import { apiUrl } from "../api";
 	//exporta as variáveis que serão usadas fora do componente Svelte
@@ -140,7 +143,13 @@
 	<ul class="messages-list">
 		{#each messages as msg}
 			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'} {msg.is_activity ? 'activity' : ''}">
-				<strong>{msg.username}:</strong>
+				<strong>{msg.username}:</strong> 
+          <button
+			    class="button is-small is-primary"
+			    on:click={() => addToFavorites(msg)}
+		      >
+			      Add to Favorites
+		    </button>
 				{@html renderMarkdown(msg.content)}
 			</li>
 		{/each}
