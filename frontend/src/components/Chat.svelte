@@ -1,8 +1,8 @@
 
-	export let addToFavorites: (msg: { username: string; content: string }) => void;
 
 <script lang="ts"> //indica que o código dentro dessa tag está em TypeScript
-  import { apiUrl } from "../api";
+	export let addToFavorites: (msg: { username: string; content: string }) => void;
+  	import { apiUrl } from "../api";
 	//exporta as variáveis que serão usadas fora do componente Svelte
 	import type { Message } from "../api";
 	import {marked} from 'marked';

@@ -14,7 +14,7 @@
 </div>
 
 <style>
-    .favoretes-list {
+    .favorite-list {
         list-style-type: none;
         padding: 0;
     }

@@ -8,8 +8,8 @@
   import type {Message} from './api.js'
   import { onMount } from 'svelte';
   let favorites: { username: string; content: string }[] = [];
-
-   import Sidebar from './components/Sidebar.svelte';
+  let error:string;
+  import Sidebar from './components/Sidebar.svelte';
 
   let messages = [
     { username: 'assistant', content: 'Hello! Im GPT.' },
@@ -42,7 +42,8 @@
     }
   }
 
-  function addToFavorites(msg: { username: string; content: string }) {
+  export function addToFavorites(msg: { username: string; content: string }) {
+    console.log("HI HI HI");
     if (!favorites.find(fav => fav.content === msg.content && fav.username === msg.username)) {
       favorites = [...favorites, msg];
       console.log('Favorites updated:', favorites); // Log para verificar o funcionamento
@@ -55,14 +56,19 @@
 
   <div class="container" id='chat-cont'>
     <h3 class="title  has-text-centered" >Mape.ia✈️</h3>
-    <Chat {handleAdd} bind:messages={messages} bind:message={message} {addToFavorites}/>
+    <div class='is-flex is-flex-direction-row'>
+      <Chat {handleAdd} bind:messages={messages} bind:message={message} addToFavorites={addToFavorites}/>
+      <Sidebar {favorites}></Sidebar>
+    </div>
     {#if error}
-      <p class="error">{error}</p>
+        <p class="error">{error}</p>
     {/if}
   </div>
+
 </main>
 
 <style>
+
 
   #chat-cont {
     max-width: 1000; /*Largura da caixa*/
