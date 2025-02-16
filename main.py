@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
-from fastapi import staticfiles
+from fastapi import staticfiles, Body
 from typing import List
 import model as m
 import uvicorn
@@ -65,6 +65,13 @@ async def getMessages(username:str) -> List[m.Message]:
         m.user_list[username] = m.User(username=username)
 
     return m.user_list[username].getMessageHistory()
+
+@app.post('/addToFavorites', response_model=List[m.Message])
+async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):
+    if username not in m.favorite_messages: m.favorite_messages[username] = [msg]
+    else: m.favorite_messages[username].append(msg)
+    return m.favorite_messages[username]
+
 
 if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html='True'), name="static")

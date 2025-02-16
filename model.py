@@ -126,7 +126,7 @@ prompts = {
 }
 
 user_list = {}
-
+favorite_messages = {}
 class User():
     username: str
     message_history: List[GptMessage]
