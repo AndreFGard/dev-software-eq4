@@ -4,10 +4,10 @@
   import viteLogo from '/vite.svg'
   import Counter from './Counter.svelte'
   import Chat from './components/Chat.svelte'
-  import { apiUrl, addMessage, getMessages } from './api.js'
+  import { apiUrl, addMessage, getMessages, addToFavoritesBack } from './api.js'
   import type {Message} from './api.js'
   import { onMount } from 'svelte';
-  let favorites: { username: string; content: string }[] = [];
+  let favorites: Message[] = [];
   let error:string;
   import Sidebar from './components/Sidebar.svelte';
 
@@ -42,12 +42,15 @@
     }
   }
 
-  export function addToFavorites(msg: { username: string; content: string }) {
-    console.log("HI HI HI");
-    if (!favorites.find(fav => fav.content === msg.content && fav.username === msg.username)) {
-      favorites = [...favorites, msg];
-      console.log('Favorites updated:', favorites); // Log para verificar o funcionamento
-    }
+  // export function addToFavorites(msg: { username: string; content: string }) {
+  //   if (!favorites.find(fav => fav.content === msg.content && fav.username === msg.username)) {
+  //     favorites = [...favorites, msg];
+  //     console.log('Favorites updated:', favorites); // Log para verificar o funcionamento
+  //   }
+  // }
+
+  export async function addToFavorites(msg: Message){
+    favorites = await addToFavoritesBack(username, msg);
   }
 
 </script>

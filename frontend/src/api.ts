@@ -29,3 +29,14 @@ export async function getMessages(username: string): Promise<Message[]>{
     console.log(response);
     return response.json()
 }
+
+export async function addToFavoritesBack(username:string, msg: Message){
+    const response = await fetch(`${apiUrl}/addToFavorites`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({username: username, msg: msg}),
+    })
+    return response.json()
+}
