@@ -141,6 +141,7 @@ class User():
         self.message_history = message_history
         self.__activities__ = {}
         self.status = UserStatus.DISCUSSING
+        self._activity_id_counter = 0
 
     def addMessage(self, msg: Message):
         role = "assistant"
@@ -170,7 +171,7 @@ class User():
         return self.__activities__
     
     def dumpActivities(self):
-        return {id:act.model_dump for id,act in self.getActivities().items()}
+        return {id:act.model_dump() for id,act in self.getActivities().items()}
 
 
 class OpenaiInteface:
