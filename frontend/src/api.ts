@@ -40,3 +40,13 @@ export async function addToFavoritesBack(username:string, msg: Message){
     })
     return response.json()
 }
+
+export async function getFavorites(username: string): Promise<Message[]>{
+    const response = await fetch(`${apiUrl}/getFavorites?username=${encodeURIComponent(username)}`, {
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        }
+    })
+    return response.json()
+}

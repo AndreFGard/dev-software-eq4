@@ -4,7 +4,7 @@
   import viteLogo from '/vite.svg'
   import Counter from './Counter.svelte'
   import Chat from './components/Chat.svelte'
-  import { apiUrl, addMessage, getMessages, addToFavoritesBack } from './api.js'
+  import { apiUrl, addMessage, getMessages, addToFavoritesBack, getFavorites} from './api.js'
   import type {Message} from './api.js'
   import { onMount } from 'svelte';
   let favorites: Message[] = [];
@@ -22,6 +22,7 @@
   onMount(async () => {
     try {
       messages = await getMessages(username);
+      favorites = await getFavorites(username);
     } catch (e: any) {
       error = e.message || e;
     }
