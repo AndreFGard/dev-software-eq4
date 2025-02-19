@@ -5,135 +5,29 @@ from openai import OpenAI, AsyncOpenAI
 import random
 import pandas as pd
 import numpy as np
-
 import time
 import asyncio as aio
 
+from schemas import *
+
+from openai_interface import *
+from user import User
 
 # classe de mensagens do role: user
-class Message(BaseModel):
-    username: str
-    content: str
-    is_activity: bool = False
+
 
 # classe de mensagens do estilo gpt, o content é obtido pelo Message.content
-class GptMessage(BaseModel):
-    role: str
-    content: str
 
 #todo: implementar a logica de achar uma cidade mais apropriadamente
 
-async def answerDummy(*args, **kwargs):
-    buzzwords = ["voce nao esta usando o chatgpt, forneca uma OPENAI_KEY\n", "- **Design Science Research**:\n1. isso é uma lista\n2. ainda é uma lista", ""]
-    await aio.sleep(2)
-    return " ".join(random.sample(buzzwords, 3) )
 
 
-class Activity(BaseModel):
-    name: str
-    short_description: str
-    long_description: str
 
-class UserStatus(Enum):
-    DISCUSSING = 'discussing'
-    SUMMARIZING_ACTIVITIES = 'summarizing_activities'
-    MODIFYING_ACTIVITY = 'modifying_activity'
 
-prompts = {
-    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this.',
-    UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
-    Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
-    UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
-}
+
 
 user_list = {}
 favorite_messages = {}
-class User():
-    username: str
-    message_history: List[GptMessage]
-    __activities__: dict[int, Activity]
-    status: UserStatus = UserStatus.DISCUSSING
-
-    def __init__(self, username="John Doe", message_history=[]):
-        self.username = username
-        if not message_history:
-            message_history = [GptMessage(role='assistant', content="Hello! I'm a travel planner. Where would you like to travel today?")]
-
-        self.message_history = message_history
-        self.__activities__ = {}
-        self.status = UserStatus.DISCUSSING
-
-    def addMessage(self, msg: Message):
-        role = "assistant"
-
-        if msg.username != "assistant":
-            role = "user"
-
-        self.message_history.append(GptMessage(role=role, content=msg.content))
-    
-    # retorna cada mensagem do historico no formato de Message
-    def getMessageHistory(self) -> List[Message]:
-
-        return [Message(username= self.username if item.role == "user" else "assistant", content=item.content) for item in self.message_history]
-    
-    def dumpHistory(self):
-        return[m.model_dump() for m in self.message_history]
-    
-    def addActivity(self, act: Activity,id=-1):
-        if id == -1 : 
-            id = self._activity_id_counter
-        else: self._activity_id_counter += 1
-        
-        self.__activities__[id] = act
-        
-    
-    def getActivities(self):
-        return self.__activities__
-    
-    def dumpActivities(self):
-        return {id:act.model_dump for id,act in self.getActivities().items()}
-
-
-class OpenaiInteface:
-    """Essa classe proverÁ (quando isso for implementado) 
-    as respostas de um chatbot.
-    Essa classe deve preparar os parametros, prompts e outras coisas
-    Parameters:
-    useDummy (bool): usar um chatbot fake ou não;."""
-
-    def __init__(self, useDummy=True, openai_key="", **kwargs):
-        self.openai = None
-        self.__openai_key__ = openai_key
-        useDummy = useDummy or not openai_key
-        if (useDummy):
-            #nao usar o chatgpt de verdade
-            self.openai = None
-        else:
-            self.openai = AsyncOpenAI(
-                base_url="https://api.groq.com/openai/v1",
-                api_key=self.__openai_key__
-            )
-
-        self.model='llama3-8b-8192'
-    
-    def getSystemMessage(self, user: User):
-        return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
-
-    async def reply(self, user:User):
-        if self.openai:
-            return await self.completion(user)
-        else: 
-            return await answerDummy(user)
-
-    async def completion(self, user: User):
-        choice = ""
-        messages=self.getSystemMessage(user) + user.dumpHistory()
-        completion = await self.openai.chat.completions.create(
-            model=self.model,
-            messages=messages
-        )
-        return completion.choices[0].message.content
-
 
 
 # banco de dados de usuarios (provisorio)
