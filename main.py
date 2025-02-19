@@ -72,6 +72,10 @@ async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):
     else: m.favorite_messages[username].append(msg)
     return m.favorite_messages[username]
 
+@app.get('/getFavorites', response_model=List[m.Message])
+async def getFavorites(username: str):
+    if username not in m.favorite_messages: return []
+    return m.favorite_messages[username]
 
 if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html='True'), name="static")
