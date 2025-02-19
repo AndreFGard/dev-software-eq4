@@ -45,6 +45,6 @@ class User():
         return self.__activities__
     
     def dumpActivities(self):
-        return {id:act.model_dump for id,act in self.getActivities().items()}
+        return {id:act.model_dump() for id,act in self.getActivities().items()}
 
 
