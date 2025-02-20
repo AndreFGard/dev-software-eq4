@@ -15,7 +15,30 @@ engine = create_async_engine(
 )
 
 async def create_table():
-    pass
+    try:
+        async with engine.connect() as conn:
+            query = text(
+                """
+                    CREATE TABLE IF NOT EXISTS MESSAGES (
+                    content_id SERIAL PRIMARY KEY, 
+                    content_message JSON
+                    );
+
+                    CREATE TABLE IF NOT EXISTS USERS (
+                        user_id SERIAL PRIMARY KEY, 
+                        nome VARCHAR(255) NOT NULL,
+                        senha VARCHAR(255) NOT NULL,
+                        lista_favoritos JSON,
+                        content_id INT,
+                        FOREIGN KEY (id_content) REFERENCES MESSAGES(id_content)
+                    ); 
+                """
+            )
+
+            await conn.execute(query)
+            await conn.commit()
+    except Exception as e:
+        assert e
 
 async def add_data(target_table : str, data : dict):
     try:
@@ -32,7 +55,7 @@ async def add_data(target_table : str, data : dict):
             await conn.commit()
 
     except Exception as e:
-        print(e)
+        assert e
 
 async def read_data(target_table : str, conditions : dict):
     try:
@@ -47,7 +70,7 @@ async def read_data(target_table : str, conditions : dict):
             return result.fetchall()
         
     except Exception as e:
-        print(e)
+        assert e
 
 async def update_data(target_table : str, conditions : dict, data : dict):
     try:
@@ -63,7 +86,7 @@ async def update_data(target_table : str, conditions : dict, data : dict):
             await conn.execute(query, params)
             await conn.commit()
     except Exception as e:
-        print(e)
+        assert e
 
 async def delete_data(yable_table : str, conditions : dict):
     try:
@@ -77,10 +100,12 @@ async def delete_data(yable_table : str, conditions : dict):
             await conn.execute(query, conditions or {})
             await conn.commit()
     except Exception as e:
-        print(e)
+        assert e
 
 async def async_main():
     try:
+        await create_table()
+
         async with engine.connect() as conn:
             result = await conn.execute(text("select 'hello world'"))
             print(result.fetchall())
@@ -88,6 +113,6 @@ async def async_main():
         await engine.dispose()
 
     except Exception as e:
-        print(e)
+        assert e
 
 asyncio.run(async_main())
