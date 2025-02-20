@@ -43,17 +43,19 @@
   	}
 
 	/* Estilo para a caixa principal */
-	.box{
-		background-color: var(--primary-color); /*Cor da caixa maior */
-		box-shadow: 0 4px 1px var(--black); /*Sombras das caixas*/
-		color: var(--white); /*Cor de "Messages:"*/
-		padding: 35px; /*Tamanho ou espaçamento das bordas*/
-		height: 78vh; /* Define a altura para a tela inteira */
-		border-radius: 30px; /*Arredondamento das bordas*/
+	/* No seu código de estilo de .box para a caixa de favoritos */
+	.box {
+		background-color: var(--primary-color);
+		box-shadow: 0 4px 1px var(--black);
+		color: var(--white);
+		padding: 35px;
+		height: 78vh;
+		border-radius: 25px;
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		justify-content: flex-end; 
+		justify-content: flex-end;
+		margin-bottom: 20px; /* Adiciona o espaçamento abaixo do box de favoritos */
 	}
 
 	h3{
@@ -108,6 +110,21 @@
 		flex-grow: 1;
 	}
 
+	/* Estilização das barras de rolagem */
+	.messages-list::-webkit-scrollbar {
+		width: 12px; /* Largura da barra */
+	}
+
+	.messages-list::-webkit-scrollbar-thumb {
+		background-color: var(--secondary-color); /* Cor da barra de rolagem */
+		border-radius: 10px; /* Arredondamento */
+		border: 3px solid transparent; /* Espaço entre a barra e o conteúdo */
+	}
+
+	.messages-list::-webkit-scrollbar-track {
+		background-color: rgba(0, 0, 0, 0.05); /* Cor do track */
+	}
+
 	/*Efeito no botão*/
 	.button:hover {
 		background-color: var(--secondary-color); /*Muda a cor do botão quando selecionado*/
@@ -134,6 +151,8 @@
 		color: rgb(19, 82, 119);
 		font-weight: bold;
 	}
+
+	
 
 </style>
 
