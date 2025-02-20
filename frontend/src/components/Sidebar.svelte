@@ -17,7 +17,7 @@
     .favorite-list {
         list-style-type: none;
         padding: 1px;
-        max-height: 80vh; /* Limita a altura da lista */
+        max-height: 60vh; /* Limita a altura da lista */
         overflow-y: auto; /* Adiciona barra de rolagem se necessário */
     }
         

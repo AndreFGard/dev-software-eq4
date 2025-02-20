@@ -72,6 +72,22 @@
     text-align: left; /* Garante que o título siga para a esquerda */
   }
 
+  .content-wrapper {
+    display: flex; /* Flex layout para alinhar os dois componentes horizontalmente */
+    flex-direction: row; /* Alinha os componentes lado a lado */
+    justify-content: space-between; /* Espaço uniforme entre os dois */
+    align-items: stretch; /* Garante que ambos os boxes tenham a mesma altura */
+    gap: 15px; /* Espaçamento entre os dois boxes */
+    max-height: 78vh; /* Limita a altura total */
+  }
+
+  .sidebar,
+  .chat {
+    flex: 1; /* Faz com que ambos ocupem o mesmo espaço */
+    max-height: 78vh; /* Garante que ambos respeitem a mesma altura */
+    overflow-y: auto; /* Adiciona barra de rolagem quando o conteúdo ultrapassar a altura */
+  }
+
   .title {
     text-align: left; /* Alinha o título à esquerda */
     margin-top: -10px; /* Espaçamento acima */

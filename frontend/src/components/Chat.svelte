@@ -70,7 +70,7 @@
 		color: var(--text-color); /*Cor do texto*/
 		padding: 1.1rem; /*Tamanho das caixas menores*/
 		border-radius: 15px; /*Arredondamento das caixas internas*/
-		max-width: 80%; /* Define a largura máxima da mensagem em relação à caixa principal */
+		max-width: 85%; /* Define a largura máxima da mensagem em relação à caixa principal */
 		word-wrap: break-word; /* Garante que palavras longas sejam quebradas */
     	word-break: break-word; /* Compatibilidade adicional com navegadores antigos */
 	}
