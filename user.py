@@ -16,6 +16,7 @@ class User():
         self.__activities__ = {}
         self.status = UserStatus.DISCUSSING
         self._activity_id_counter =0
+        self._message_id_counter=-1
 
     def addMessage(self, msg: Message):
         role = "assistant"
@@ -23,12 +24,14 @@ class User():
         if msg.username != "assistant":
             role = "user"
 
-        self.message_history.append(GptMessage(role=role, content=msg.content))
+        self._message_id_counter +=1
+        self.message_history.append(GptMessage(role=role, content=msg.content, id=self._message_id_counter+1))
+        
     
     # retorna cada mensagem do historico no formato de Message
     def getMessageHistory(self) -> List[Message]:
 
-        return [Message(username= self.username if item.role == "user" else "assistant", content=item.content) for item in self.message_history]
+        return [Message(username= self.username if item.role == "user" else "assistant", content=item.content, id = item.id) for item in self.message_history]
     
     def dumpHistory(self):
         return[m.model_dump() for m in self.message_history]

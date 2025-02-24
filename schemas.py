@@ -3,6 +3,7 @@ from enum import Enum
 class GptMessage(BaseModel):
     role: str
     content: str
+    id: int = 0
 
 class Activity(BaseModel):
     name: str
@@ -18,3 +19,4 @@ class Message(BaseModel):
     username: str
     content: str
     is_activity: bool = False
+    id: int = 0

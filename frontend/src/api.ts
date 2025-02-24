@@ -4,6 +4,7 @@ export interface Message{
     username: string;
     content:string;
     is_activity?:boolean;
+    id?:Number;
 }
 
 
