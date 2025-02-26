@@ -1,4 +1,8 @@
 import subprocess
+from database import connection as conn
+
+db = conn.Database()
+
 backend_commands = ["fastapi dev main.py"]
 
 frontend_commands = [

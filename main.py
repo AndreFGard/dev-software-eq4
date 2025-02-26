@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
 from fastapi import staticfiles, Body
+from start import db
 from typing import List
 import model as m
 import uvicorn
@@ -44,27 +45,41 @@ async def addData(msg: m.Message):
     """Recebe uma mensagem nova, determina o usuario, pega a resposta 
     de uma IA e adiciona no historico de mensagens
     e retorna o historico de mensagens"""
-    #preencher aqui
-    if (msg.username not in m.user_list):
-        user = m.User(msg.username)
-        m.user_list[msg.username] = user
-    else:
-        user = m.user_list[msg.username]
-    user.addMessage(msg)
-    reply = await openai.reply(user)
-    user.addMessage(m.Message(username="assistant", content=reply ))
-    messages =user.getMessageHistory()
-    return messages
+
+    try:
+        user_data = {"username": msg.username, "password" : "senha"}
+        user_exists = await db.read_data("users", user_data)
+
+        if not user_exists:
+            await db.add_data("users", user_data)
+
+        await db.add_data("messages", {"content_message": msg.dict()})
+
+        reply = await openai.reply(msg)
+        assistant_msg = m.Message(username="assistant", content=reply)
+        await db.add_data("messages", {"content_message": assistant_msg.dict()})
+
+        messages = await db.read_data("messages", {"username" : msg.username})
+
+        return messages
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/getMessages", response_model=List[m.Message])
-async def getMessages(username:str) -> List[m.Message]:
+async def getMessages(username: str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
-
-    if username not in m.user_list.keys():
-        m.user_list[username] = m.User(username=username)
-
-    return m.user_list[username].getMessageHistory()
+    try:
+        user_data = {"username": username}
+        user_exists = await db.read_data("USERS", user_data)
+        
+        if not user_exists:
+            await db.add_data("USERS", user_data)
+        
+        messages = await db.read_data("MESSAGES", {"username": username})
+        return messages
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post('/addToFavorites', response_model=List[m.Message])
 async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):

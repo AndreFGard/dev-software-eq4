@@ -5,114 +5,124 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse
 from sqlalchemy.ext.asyncio import create_async_engine
 
-load_dotenv()
+class Database:
+    def __init__(self):
+        load_dotenv()
 
-tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
+        tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
-engine = create_async_engine(
-    f"postgresql+asyncpg://{tmpPostgres.username}:{tmpPostgres.password}@{tmpPostgres.hostname}{tmpPostgres.path}", 
-    echo=True
-)
+        self.engine = create_async_engine(
+            f"postgresql+asyncpg://{tmpPostgres.username}:{tmpPostgres.password}@{tmpPostgres.hostname}{tmpPostgres.path}", 
+            echo=True
+        )
 
-async def create_table():
-    try:
-        async with engine.connect() as conn:
-            query = text(
-                """
-                    CREATE TABLE IF NOT EXISTS MESSAGES (
-                    content_id SERIAL PRIMARY KEY, 
-                    content_message JSON
-                    );
+        asyncio.run(self.async_main())
 
-                    CREATE TABLE IF NOT EXISTS USERS (
-                        user_id SERIAL PRIMARY KEY, 
-                        nome VARCHAR(255) NOT NULL,
-                        senha VARCHAR(255) NOT NULL,
-                        lista_favoritos JSON,
-                        content_id INT,
-                        FOREIGN KEY (id_content) REFERENCES MESSAGES(id_content)
-                    ); 
-                """
-            )
+    async def create_table(self):
+        try:
+            async with self.engine.connect() as conn:
+                query = text(
+                    """
+                        CREATE TABLE IF NOT EXISTS MESSAGES (
+                            content_id SERIAL PRIMARY KEY, 
+                            content_message JSON
+                        );
 
-            await conn.execute(query)
-            await conn.commit()
-    except Exception as e:
-        assert e
+                        CREATE TABLE IF NOT EXISTS USERS (
+                            user_id SERIAL PRIMARY KEY, 
+                            username VARCHAR(255) NOT NULL,
+                            password VARCHAR(255) NOT NULL,
+                            favorite_list JSON,
+                            content_id INT,
+                            FOREIGN KEY (id_content) REFERENCES MESSAGES(id_content)
+                        ); 
 
-async def add_data(target_table : str, data : dict):
-    try:
-        async with engine.connect() as conn:
-            columns = ", ".join(data.keys())
-            values = ", ".join([f":{key}" for key in data.keys()])
-            query = text(
-                f"""
-                    INSERT INTO {target_table} ({columns}) VALUES ({values})
-                """
-            )
+                        CREATE TABLE IF NOT EXISTS FAVORITES (
+                            user_id INT,
+                            content_id INT,
+                            content_message VARCHAR(255),
+                            FOREIGN KEY (user_id) REFERENCES USERS(user_id),
+                            FOREIGN KEY (content_id) REFERENCES MESSAGES(content_id)
+                        );
+                    """
+                )
 
-            await conn.execute(query)
-            await conn.commit()
+                await conn.execute(query)
+                await conn.commit()
+        except Exception as e:
+            assert e
 
-    except Exception as e:
-        assert e
+    async def add_data(self, target_table : str, data : dict):
+        try:
+            async with self.engine.connect() as conn:
+                columns = ", ".join(data.keys())
+                values = ", ".join([f":{key}" for key in data.keys()])
+                query = text(
+                    f"""
+                        INSERT INTO {target_table} ({columns}) VALUES ({values})
+                    """
+                )
 
-async def read_data(target_table : str, conditions : dict):
-    try:
-        async with engine.connect() as conn:
-            where_clause = " AND ".join([f"{key} = :{key}" for key in conditions.keys()])
-            query = text(
-                f"""
-                    SELECT * FROM {target_table} WHERE {where_clause}
-                """
-            )
-            result = await conn.execute(query, conditions or {})
-            return result.fetchall()
-        
-    except Exception as e:
-        assert e
+                await conn.execute(query)
+                await conn.commit()
 
-async def update_data(target_table : str, conditions : dict, data : dict):
-    try:
-        async with engine.connect() as conn:
-            where_clause = " AND ".join([f"{key} = :{key}" for key in conditions.keys()])
-            data_string = ", ".join([f"{key} = :{key}" for key in data.keys()])
-            query = text(
-                f"""
-                    UPDATE {target_table} SET {data_string} WHERE {where_clause}
-                """
-            )
-            params = {**conditions, **data}
-            await conn.execute(query, params)
-            await conn.commit()
-    except Exception as e:
-        assert e
+        except Exception as e:
+            assert e
 
-async def delete_data(yable_table : str, conditions : dict):
-    try:
-        async with engine.connect() as conn:
-            where_clause = " AND ".join([f"{key} = :{key}" for key in conditions.keys()])
-            query = text(
-                f"""
-                    DELETE FROM {yable_table} WHERE {where_clause}
-                """
-            )
-            await conn.execute(query, conditions or {})
-            await conn.commit()
-    except Exception as e:
-        assert e
+    async def read_data(self, target_table : str, conditions : dict):
+        try:
+            async with self.engine.connect() as conn:
+                where_clause = " AND ".join([f"{key} = :{key}" for key in conditions.keys()])
+                query = text(
+                    f"""
+                        SELECT * FROM {target_table} WHERE {where_clause}
+                    """
+                )
+                result = await conn.execute(query, conditions or {})
+                return result.fetchall()
+            
+        except Exception as e:
+            assert e
 
-async def async_main():
-    try:
-        await create_table()
+    async def update_data(self, target_table : str, conditions : dict, data : dict):
+        try:
+            async with self.engine.connect() as conn:
+                where_clause = " AND ".join([f"{key} = :{key}" for key in conditions.keys()])
+                data_string = ", ".join([f"{key} = :{key}" for key in data.keys()])
+                query = text(
+                    f"""
+                        UPDATE {target_table} SET {data_string} WHERE {where_clause}
+                    """
+                )
+                params = {**conditions, **data}
+                await conn.execute(query, params)
+                await conn.commit()
+        except Exception as e:
+            assert e
 
-        async with engine.connect() as conn:
-            result = await conn.execute(text("select 'hello world'"))
-            print(result.fetchall())
+    async def delete_data(self, yable_table : str, conditions : dict):
+        try:
+            async with self.engine.connect() as conn:
+                where_clause = " AND ".join([f"{key} = :{key}" for key in conditions.keys()])
+                query = text(
+                    f"""
+                        DELETE FROM {yable_table} WHERE {where_clause}
+                    """
+                )
+                await conn.execute(query, conditions or {})
+                await conn.commit()
+        except Exception as e:
+            assert e
 
-        await engine.dispose()
+    async def async_main(self):
+        try:
+            await self.create_table()
 
-    except Exception as e:
-        assert e
+            async with self.engine.connect() as conn:
+                result = await conn.execute(text("select 'hello world'"))
+                print(result.fetchall())
 
-asyncio.run(async_main())
+            await self.engine.dispose()
+
+        except Exception as e:
+            assert e
