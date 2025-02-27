@@ -1,6 +1,15 @@
 from search import Searcher
 import asyncio
 
+from crawl4ai import AsyncWebCrawler, CacheMode, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlResult
+
+async def crawl4ai_crawl(url) -> CrawlResult:
+    crawler_config = CrawlerRunConfig(cache_mode=CacheMode.BYPASS)
+    async with AsyncWebCrawler() as crawler:
+        result = await crawler.arun(
+            url=url, config=crawler_config
+        )
+        return result
 
 class RAG:
     def __init__(self, brave_api_key=""):
@@ -12,13 +21,7 @@ class RAG:
         }
         self.sr = Searcher(brave_api_key)
     
-    async def search_and_scrap(self, query: str):
-        results = await self.sr.search(query)
-        for r in results:
-            html = Scraper.fetch_html(r.url, headers = self.headers)
-            md = markdown_content = Converter.html_to_markdown(html=html, parser_features='html.parser',ignore_links=True)
-            print(md)
-            break
+
             
 r = RAG()
-asyncio.run(r.search_and_scrap(""))
+asyncio.run()
