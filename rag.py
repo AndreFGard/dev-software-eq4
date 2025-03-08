@@ -1,13 +1,15 @@
-from search import Searcher
+from search import Searcher, SearchItem
 import asyncio
+import os
 
+brave_key = os.getenv("BRAVE_KEY")
 from crawl4ai import AsyncWebCrawler, CacheMode, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlResult
 
-async def crawl4ai_crawl(url) -> CrawlResult:
-    crawler_config = CrawlerRunConfig(cache_mode=CacheMode.BYPASS)
+async def crawl4ai_crawl_many(urls: list) -> CrawlResult:
+    crawler_config = CrawlerRunConfig(cache_mode=CacheMode.ENABLED)
     async with AsyncWebCrawler() as crawler:
-        result = await crawler.arun(
-            url=url, config=crawler_config
+        result = await crawler.arun_many(
+            url=urls, config=crawler_config
         )
         return result
 
@@ -19,9 +21,18 @@ class RAG:
             'Accept-Language': 'en-US,en;q=0.5',
             'Connection': 'keep-alive',
         }
-        self.sr = Searcher(brave_api_key)
+        self.sr = Searcher(brave_api_key, use_demo=True)
+        self.demo = True
+    async def search_and_crawl(self, query=""):
+        srItems = await self.sr.search(query)
+
+        results = await crawl4ai_crawl_many([site.url for site in srItems])
+        return results
+    
+
+
     
 
             
 r = RAG()
-asyncio.run()
+asyncio.run(r.search_and_crawl())

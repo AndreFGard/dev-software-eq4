@@ -3,7 +3,14 @@ import aiohttp
 
 from  pydantic import BaseModel
 search_url = "https://api.search.brave.com/res/v1/web/search"
-brave_api_key = ""  # Add your Brave API key here
+brave_api_key = "BSAsV5w2ABc9SshOY3pMZUc2m3eOfd8"  # Add your Brave API key here
+
+def _update_demo(fname="searchdemo.json"):
+    f = open(fname,"w")
+    x = asyncio.run(Searcher(brave_api_key, use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
+    import json
+    json.dump(x, f)
+    f.close()
 
 class SearchItem(BaseModel):
     title: str
@@ -19,7 +26,7 @@ class SearchItem(BaseModel):
 
 def getDemoResults():
         import json
-        f = open("demosearch.json", "r")
+        f = open("searchdemo.json", "r")
         d = json.load(f)
         f.close()
         return d
@@ -53,3 +60,4 @@ class Searcher:
             async with session.get(search_url, headers=headers, params=params) as response:
                 return await response.json()
 
+_update_demo()
