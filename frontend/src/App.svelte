@@ -43,13 +43,19 @@
   export async function addToFavorites(msg: Message) {
     favorites = await addToFavoritesBack(username, msg);
   }
+
+  async function removeFromFavorites(msg: Message) {
+  favorites = favorites.filter(fav => fav.content !== msg.content); // Remove localmente
+  await removeFromFavoritesBack(username, msg); // Remove no backend
+}
+
 </script>
 
 <main class="section">
   <div class="container" id="chat-cont">
     <h3 class="title has-text-centered">Mape.ia✈️</h3>
     <div class="is-flex is-flex-direction-row is-justify-content-center" style="gap: 15px;"> <!-- Centraliza a sidebar e o chat -->
-      <Sidebar {favorites} class="sidebar" />
+      <Sidebar {favorites} class="sidebar" removeFromFavorites={removeFromFavorites} />
       <Chat {handleAdd} bind:messages={messages} bind:message={message} addToFavorites={addToFavorites} />
     </div>
     {#if error}
@@ -58,6 +64,7 @@
   </div>
 </main>
 <style>
+
   #chat-cont {
     max-width: 1000px; /* Largura da caixa */
     margin: auto;

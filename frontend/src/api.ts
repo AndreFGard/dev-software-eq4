@@ -51,3 +51,12 @@ export async function getFavorites(username: string): Promise<Message[]>{
     })
     return response.json()
 }
+
+export async function removeFromFavoritesBack(username, msg) {
+    await fetch(`${apiUrl}/removeFavorite`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, content: msg.content }),
+    });
+  }
+  
