@@ -108,11 +108,13 @@
 		overflow-y: auto; /* Adiciona barra de rolagem se necessário */
 		gap: 10px; /* Espaçamento entre as mensagens */
 		flex-grow: 1;
+		padding-right: 25px;
 	}
 
 	/* Estilização das barras de rolagem */
 	.messages-list::-webkit-scrollbar {
-		width: 12px; /* Largura da barra */
+		width: 10px; /* Largura da barra */
+		
 	}
 
 	.messages-list::-webkit-scrollbar-thumb {
@@ -152,8 +154,12 @@
 		font-weight: bold;
 	}
 
+	.favorite-button {
+		height: 25px; /* Ajuste conforme necessário */
+		padding: 5px 12px; /* Ajuste para melhor espaçamento */
+		font-size: 12px;
+	}
 	
-
 </style>
 
 <!--Estrutura HTML principal-->
@@ -163,12 +169,13 @@
 		{#each messages as msg}
 			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'} {msg.is_activity ? 'activity' : ''}">
 				<strong>{msg.username}:</strong> 
-          <button
-			    class="button is-small is-primary"
-			    on:click={() => addToFavorites(msg)}
-		      >
-			      Add to Favorites
-		    </button>
+				<button
+				class="button is-small is-primary favorite-button"
+				on:click={() => addToFavorites(msg)}
+			  	>
+				Add to Favorites
+			  	</button>
+			  
 				{@html renderMarkdown(msg.content)}
 			</li>
 		{/each}
