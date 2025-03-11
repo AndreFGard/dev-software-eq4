@@ -1,14 +1,8 @@
 from pydantic import BaseModel
 from datetime import date, datetime
 import asyncio as aio 
-
-class DB_Site(BaseModel):
-    timestamp: date
-    url: str
-    content: str
-    title: str
-    id: int = 0
-
+from itertools import chain
+from schemas import *
 
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
@@ -27,31 +21,28 @@ class VecDb:
                     CONSTRAINT fk_sites FOREIGN KEY (site_id) REFERENCES sites(id));"""
         print("create table not implemented")
 
-    async def insert_site(self, site: DB_Site):
+    async def insert_sites_n_chunks(self, sites: list[DB_Site]):
         """returns site id"""
         id = 0
+        dumped = [site.model_dump() for site in sites]
+        #todo use ORM to be able to batch insert
+
         async with self.engine.begin() as conn:
-            result = await conn.execute(
-                text("""INSERT INTO sites (timestamp, url, content, title) 
-                    VALUES(:timestamp, :url, :content, :title) 
-                    RETURNING id"""),
-                {
-                    "timestamp": site.timestamp or datetime.now().date(),
-                    "url": site.url,
-                    "content": site.content,
-                    "title": site.title
-                }
-            )
-            id = result.first().id
+            ids = []
+            for obj in dumped:
+                result = await conn.execute(
+                    text("""INSERT INTO sites (timestamp, url, content, title) 
+                        VALUES(NOW(), :url, :content, :title) 
+                        RETURNING id"""), obj
+                )
+                ids.append(result.first().id)
+
+            docs = [[DB_Document(content=chunk, site_id=id).model_dump() for chunk in site.chunks] for id,site in zip(ids, sites)]
+            flatdocs = []
+            for l in docs: flatdocs += l
+
+            doc_result = await conn.execute(text("""INSERT INTO documents (content, site_id) VALUES(:content, :site_id)
+                        """), flatdocs)
+
         return id
     
-import os
-db = VecDb(os.getenv("TEMBO_PSQL_URL"))
-
-site = DB_Site(
-    timestamp=datetime.now().date(),
-    url="https://example.com",
-    content="Example content",
-    title="Example Title"
-)
-print(aio.run(db.insert_site(site)))
