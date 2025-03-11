@@ -13,7 +13,7 @@ from crawl4ai import CrawlerRunConfig
 prune_filter = PruningContentFilter(
     threshold=0.5,
     threshold_type="fixed",  # or "dynamic"
-    min_word_threshold=50
+    min_word_threshold=5
 )
 
 async def crawl4ai_crawl_many(urls: list) -> list[CrawlResult]:
@@ -45,10 +45,12 @@ except:
 
 from nltk.tokenize import TextTilingTokenizer
 
+from openai_interface import RAGOpenai
 class SlidingWindowChunking:
-    def __init__(self, window_size=70, step=35):
+    def __init__(self, window_size=70, step=35, openai_key=os.environ.get('OPENAI_KEY')):
         self.window_size = window_size
         self.step = step
+        self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
 
     def chunk(self, text):
         words = text.split()
@@ -57,12 +59,14 @@ class SlidingWindowChunking:
             chunks.append(' '.join(words[i:i + self.window_size]))
         return chunks
     
-    def _add_chunks(self, site: CrawlResult) -> list[DB_Site]:
-        chunks = self.chunk(str(site.markdown))
+    async def _add_chunks(self, site: CrawlResult) -> list[DB_Site]:
+        md = site.markdown.fit_markdown or site.markdown 
+        md = await self.llm.summarize(md)
+        chunks = self.chunk(str(md))
         site.chunks = chunks
 
         return DB_Site(url=site.url,
-                        content=site.markdown,
+                        content=md,
                        title=site.metadata.get('title'),
                        chunks = chunks
                        )
@@ -74,12 +78,6 @@ from concurrent.futures import ThreadPoolExecutor
 import vdb, os
 class RAG:
     def __init__(self, brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=2, demo_search=True):
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Connection': 'keep-alive',
-        }
         self.sr = Searcher(brave_api_key, use_demo=demo_search)
         self.demo_search = demo_search
         self.chunker = SlidingWindowChunking()
@@ -92,15 +90,14 @@ class RAG:
         results = await crawl4ai_crawl_many(urls=[site.url for i,site in zip(range(self.top_results), srItems)])
         return results
     
-    def add_chunks(self, sites: list[CrawlResult]) -> list[CrawlResultChunked]:
+    async def add_chunks(self, sites: list[CrawlResult]) -> list[CrawlResultChunked]:
         """do topic segmentation/chunking in the content of many sites in parallel"""
-        with ThreadPoolExecutor(max_workers=6) as executor:
-            results = list(executor.map(self.chunker._add_chunks, sites))
+        results = [await self.chunker._add_chunks(site) for site in sites]
         return results
     
     async def store_search(self, query):
         results = [site for site in await self.search_and_crawl(query) if site.success]
-        results = self.add_chunks(results) 
+        results = await self.add_chunks(results) 
       
         
         return await self.db.insert_sites_n_chunks(results)
@@ -115,3 +112,4 @@ def demo():
     #     print("\n\n\tCHUNK BLOCK")
     #     #[print(f"\n\t\tCHUNK: ---{chunk}") for chunk in result.chunks]
     asyncio.run(rag.store_search(query))
+demo()

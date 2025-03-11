@@ -8,7 +8,7 @@ from schemas import *
 from user import User
 
 prompts = {
-    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this.',
+    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this. If necesssary, call tools to search info on the internet about a destination',
     UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
     Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
     UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
@@ -20,14 +20,7 @@ async def answerDummy(*args, **kwargs):
     return " ".join(random.sample(buzzwords, 3) )
 
 
-
-class OpenaiInteface:
-    """Essa classe proverÁ (quando isso for implementado) 
-    as respostas de um chatbot.
-    Essa classe deve preparar os parametros, prompts e outras coisas
-    Parameters:
-    useDummy (bool): usar um chatbot fake ou não;."""
-
+class MasterOpenaiInterface:
     def __init__(self, useDummy=True, openai_key="", **kwargs):
         self.openai = None
         self.__openai_key__ = openai_key
@@ -42,6 +35,43 @@ class OpenaiInteface:
             )
 
         self.model='llama3-8b-8192'
+        
+class RAGOpenai(MasterOpenaiInterface):
+    def __init__(self, openai_key="", useDummy=False):
+            super().__init__(openai_key=openai_key)
+
+            self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
+              provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
+              Do not include phrases like \"Sure!\" or
+              \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
+            
+    async def summarize(self, text):
+        messages=[
+            GptMessage(role="system", 
+                content=self.summarize_prompt).model_dump(),
+
+            GptMessage(role="user",
+                content=text).model_dump()
+        ]
+        
+        completion = await self.openai.chat.completions.create(
+            model=self.model,
+            messages=messages
+        )
+    
+        return completion.choices[0].message.content
+
+
+
+class OpenaiInteface(MasterOpenaiInterface):
+    """Essa classe proverÁ (quando isso for implementado) 
+    as respostas de um chatbot.
+    Essa classe deve preparar os parametros, prompts e outras coisas
+    Parameters:
+    useDummy (bool): usar um chatbot fake ou não;."""
+
+    def __init__(self, useDummy=True, openai_key="", **kwargs):
+        super().__init__(useDummy=useDummy, openai_key=openai_key)
     
     def getSystemMessage(self, user: User):
         return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
@@ -60,4 +90,5 @@ class OpenaiInteface:
             messages=messages
         )
         return completion.choices[0].message.content
+    
 
