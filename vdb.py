@@ -44,6 +44,17 @@ class VecDb:
 
             doc_result = await conn.execute(text("""INSERT INTO documents (content, last_updated_at, site_id) VALUES(:content, NOW(), :site_id)
                         """), flatdocs)
+            
 
         return id
     
+    async def retrieve_no_search(self,query:str):
+        async with self.engine.begin() as conn:
+            result = await conn.execute(text("""select * from vectorize.search(
+                                       job_name=>'docs_search',
+                                        query => :query, 
+                                       return_columns => ARRAY['id','content'], num_results=>:num_results);
+        """), {"query":query, "num_results": 5})
+            chunks = [r['content'] for r in result.fetchall()]
+            return chunks
+            
