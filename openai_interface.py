@@ -3,7 +3,6 @@ import asyncio as aio
 import random
 from openai import AsyncOpenAI
 
-
 from schemas import *
 from user import User
 
@@ -18,7 +17,6 @@ async def answerDummy(*args, **kwargs):
     buzzwords = ["voce nao esta usando o chatgpt, forneca uma OPENAI_KEY\n", "- **Design Science Research**:\n1. isso é uma lista\n2. ainda é uma lista", ""]
     await aio.sleep(2)
     return " ".join(random.sample(buzzwords, 3) )
-
 
 
 class OpenaiInteface:
@@ -53,11 +51,14 @@ class OpenaiInteface:
             return await answerDummy(user)
 
     async def completion(self, user: User):
+        if not self.openai:
+            return await answerDummy(user)
+        
         choice = ""
-        messages=self.getSystemMessage(user) + user.dumpHistory()
+        messages = self.getSystemMessage(user) + await user.dump_history()
         completion = await self.openai.chat.completions.create(
             model=self.model,
             messages=messages
         )
-        return completion.choices[0].message.content
 
+        return completion.choices[0].message.content
