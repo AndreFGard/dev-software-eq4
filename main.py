@@ -15,6 +15,10 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
 
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
+    BRAVE_KEY: str = ''
+    TEMBO_PSQL_URL: str = ''
+    class Config:
+        env_file = ".env"
 
 settings=Settings()
 
