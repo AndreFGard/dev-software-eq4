@@ -45,7 +45,6 @@ except:
 
 from nltk.tokenize import TextTilingTokenizer
 
-from openai_interface import RAGOpenai
 class SlidingWindowChunking:
     def __init__(self, window_size=70, step=35, openai_key=os.environ.get('OPENAI_KEY')):
         self.window_size = window_size
@@ -66,7 +65,9 @@ class SlidingWindowChunking:
     #todo move the summarizer out of here
     async def _add_chunks(self, site: CrawlResult) -> list[DB_Site]:
         md = site.markdown.fit_markdown or site.markdown or " "
-        md = await self.llm.summarize(md)
+        if len(md) < self.llm.rate_limit:
+            md = await self.llm.summarize(md)
+        
         chunks = self.chunk(str(md))
 
         return DB_Site(url=site.url,
@@ -85,7 +86,8 @@ class RAGOpenai(MasterOpenaiInterface):
               provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
               Do not include phrases like \"Sure!\" or
               \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
-            
+            self.model = "gemma2-9b-it"
+
     async def summarize(self, text):
         messages=[
             GptMessage(role="system", 
@@ -103,14 +105,11 @@ class RAGOpenai(MasterOpenaiInterface):
         )
     
         return completion.choices[0].message.content
-    
-    async def retrieve_info(self, query:str) -> list[str]:
-        """Searches a query on the internet and on the knowledge database and returns the top most relevant texts"""
-        ...
+  
 
 import vdb, os
 class RAG:
-    def __init__(self, brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=2, demo_search=True):
+    def __init__(self, brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=4, demo_search=True):
         self.sr = Searcher(brave_api_key, use_demo=demo_search)
         self.demo_search = demo_search
         self.chunker = SlidingWindowChunking()
@@ -128,21 +127,26 @@ class RAG:
         results = [await self.chunker._add_chunks(site) for site in sites]
         return results
     
-    async def store_search(self, query):
+    async def search_store(self, query):
+        """currently unused because we couldnt find a performant way to both search, store and retrieve"""
         results = [site for site in await self.search_and_crawl(query) if site.success]
         results = await self.add_chunks(results) 
       
         
         return await self.db.insert_sites_n_chunks(results)
+    
+    async def retrieve_no_search(self, query):
+        return await self.db.retrieve_no_search(query)
+
 
     
-def demo():
+async def demo():
     rag = RAG(brave_api_key=brave_key, demo_search=True)
-    query = "Tourist attractions in Recife"
+    await rag.db.retrieve_no_search("what to do in rio")
+    query = "Best Tourist attractions in Rio de Janeiro"
     # crawled_results = asyncio.run( rag.search_and_crawl(query))
     # segmented_results = rag.add_chunks(crawled_results)
     # for result in segmented_results:
     #     print("\n\n\tCHUNK BLOCK")
     #     #[print(f"\n\t\tCHUNK: ---{chunk}") for chunk in result.chunks]
-    asyncio.run(rag.store_search(query))
-demo()
+    return await (rag.store_search(query))

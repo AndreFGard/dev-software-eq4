@@ -53,6 +53,7 @@ class MasterOpenaiInterface:
             )
 
         self.model='llama3-8b-8192'
+        self.rate_limit = 8000
         
 
 
