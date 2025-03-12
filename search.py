@@ -7,7 +7,8 @@ search_url = "https://api.search.brave.com/res/v1/web/search"
 
 def _update_demo(fname="searchdemo.json"):
     f = open(fname,"w")
-    x = asyncio.run(Searcher(brave_api_key, use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
+    import os
+    x = asyncio.run(Searcher(os.getenv('BRAVE_KEY'), use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
     import json
     json.dump(x, f)
     f.close()
