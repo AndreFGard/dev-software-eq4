@@ -52,6 +52,7 @@ class SlidingWindowChunking:
         self.step = step
         self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
 
+    #
     def chunk(self, text):
         words = text.split()
         chunks = []
@@ -59,11 +60,11 @@ class SlidingWindowChunking:
             chunks.append(' '.join(words[i:i + self.window_size]))
         return chunks
     
+    #todo move the summarizer out of here
     async def _add_chunks(self, site: CrawlResult) -> list[DB_Site]:
         md = site.markdown.fit_markdown or site.markdown 
         md = await self.llm.summarize(md)
         chunks = self.chunk(str(md))
-        site.chunks = chunks
 
         return DB_Site(url=site.url,
                         content=md,
