@@ -15,6 +15,8 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
 
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
+    BRAVE_KEY:str
+    TEMBO_PSQL_URL:str
 
 settings=Settings()
 
@@ -29,7 +31,11 @@ app.add_middleware(
 )
 
 users = m.user_list
-openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,openai_key=settings.OPENAI_KEY)
+openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,
+                          openai_key=settings.OPENAI_KEY,
+                          brave_api_key=settings.BRAVE_KEY,
+                          TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
+
 print(settings.OPENAI_KEY)
 
 @app.get("/")
