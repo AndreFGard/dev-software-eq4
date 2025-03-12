@@ -77,7 +77,36 @@ class SlidingWindowChunking:
 
 from concurrent.futures import ThreadPoolExecutor
 
+class RAGOpenai(MasterOpenaiInterface):
+    def __init__(self, openai_key="", useDummy=False):
+            super().__init__(openai_key=openai_key, useDummy=useDummy)
 
+            self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
+              provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
+              Do not include phrases like \"Sure!\" or
+              \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
+            
+    async def summarize(self, text):
+        messages=[
+            GptMessage(role="system", 
+                content=self.summarize_prompt).model_dump(),
+
+            GptMessage(role="user",
+                content=text).model_dump()
+        ]
+
+        [m.pop("id") for m in messages]
+        
+        completion = await self.openai.chat.completions.create(
+            model=self.model,
+            messages=messages
+        )
+    
+        return completion.choices[0].message.content
+    
+    async def retrieve_info(self, query:str) -> list[str]:
+        """Searches a query on the internet and on the knowledge database and returns the top most relevant texts"""
+        ...
 
 import vdb, os
 class RAG:
