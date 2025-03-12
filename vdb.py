@@ -18,6 +18,7 @@ class VecDb:
     
     def _create_documents_table(self):
         q = """CREATE TABLE documents (content text, site_id int, id serial primary key,
+                    last_updated_at TIMESTAMP WITHOUT TIME ZONE,
                     CONSTRAINT fk_sites FOREIGN KEY (site_id) REFERENCES sites(id));"""
         print("create table not implemented")
 
@@ -41,7 +42,7 @@ class VecDb:
             flatdocs = []
             for l in docs: flatdocs += l
 
-            doc_result = await conn.execute(text("""INSERT INTO documents (content, site_id) VALUES(:content, :site_id)
+            doc_result = await conn.execute(text("""INSERT INTO documents (content, last_updated_at, site_id) VALUES(:content, NOW(), :site_id)
                         """), flatdocs)
 
         return id
