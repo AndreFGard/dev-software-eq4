@@ -57,12 +57,15 @@ class SlidingWindowChunking:
         words = text.split()
         chunks = []
         for i in range(0, len(words) - self.window_size + 1, self.step):
-            chunks.append(' '.join(words[i:i + self.window_size]))
+            chosen = words[i:i + self.window_size]
+            if chosen:
+                chunks.append(' '.join(chosen))
+
         return chunks
     
     #todo move the summarizer out of here
     async def _add_chunks(self, site: CrawlResult) -> list[DB_Site]:
-        md = site.markdown.fit_markdown or site.markdown 
+        md = site.markdown.fit_markdown or site.markdown or " "
         md = await self.llm.summarize(md)
         chunks = self.chunk(str(md))
 
