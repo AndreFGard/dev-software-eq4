@@ -54,7 +54,8 @@ class VecDb:
                                        job_name=>'docs_search',
                                         query => :query, 
                                        return_columns => ARRAY['id','content'], num_results=>:num_results);
-        """), {"query":query, "num_results": 5})
-            chunks = [r['content'] for r in result.fetchall()]
-            return chunks
+             """), {"query":query, "num_results": 5})
             
+            chunks = [r[0]['content'] for r in result.fetchall()]
+            return chunks
+    

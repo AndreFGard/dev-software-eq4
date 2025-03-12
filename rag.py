@@ -137,6 +137,10 @@ class RAG:
     
     async def retrieve_no_search(self, query):
         return await self.db.retrieve_no_search(query)
+    
+    async def retrieve_with_search(self, query):
+        await self.search_store(query)
+        return await self.db.retrieve_no_search(query)
 
 
     
