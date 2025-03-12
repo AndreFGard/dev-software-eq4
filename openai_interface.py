@@ -38,7 +38,7 @@ class MasterOpenaiInterface:
         
 class RAGOpenai(MasterOpenaiInterface):
     def __init__(self, openai_key="", useDummy=False):
-            super().__init__(openai_key=openai_key)
+            super().__init__(openai_key=openai_key, useDummy=useDummy)
 
             self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
               provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
@@ -53,6 +53,8 @@ class RAGOpenai(MasterOpenaiInterface):
             GptMessage(role="user",
                 content=text).model_dump()
         ]
+
+        [m.pop("id") for m in messages]
         
         completion = await self.openai.chat.completions.create(
             model=self.model,
@@ -85,6 +87,8 @@ class OpenaiInteface(MasterOpenaiInterface):
     async def completion(self, user: User):
         choice = ""
         messages=self.getSystemMessage(user) + user.dumpHistory()
+
+        [m.pop("id") for m in messages]
         completion = await self.openai.chat.completions.create(
             model=self.model,
             messages=messages
