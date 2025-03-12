@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+
 class GptMessage(BaseModel):
     role: str
     content: str
@@ -20,3 +21,4 @@ class Message(BaseModel):
     content: str
     is_activity: bool = False
     id: int = 0
+    user_id: int | None = None
