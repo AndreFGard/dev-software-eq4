@@ -15,8 +15,11 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
 
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
-    BRAVE_KEY:str
-    TEMBO_PSQL_URL:str
+    BRAVE_KEY: str = ''
+    TEMBO_PSQL_URL: str = ''
+    class Config:
+        env_file = ".env"
+
 
 settings=Settings()
 
@@ -77,6 +80,13 @@ async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):
     if username not in m.favorite_messages: m.favorite_messages[username] = {msg.id: msg}
     else: m.favorite_messages[username][msg.id] = msg
     return list(m.favorite_messages[username].values())
+
+@app.post('/removeFavorite', response_model=List[m.Message])
+async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...)):
+    if username in m.favorite_messages and msg.id in m.favorite_messages[username]:
+        del m.favorite_messages[username][msg.id]
+    return list(m.favorite_messages[username].values())
+
 
 @app.get('/getFavorites', response_model=List[m.Message])
 async def getFavorites(username: str):
