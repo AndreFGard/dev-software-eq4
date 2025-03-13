@@ -91,7 +91,7 @@ async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...))
 @app.get('/getFavorites', response_model=List[m.Message])
 async def getFavorites(username: str):
     if username not in m.favorite_messages: return []
-    return m.favorite_messages[username]
+    return list(m.favorite_messages[username].values())
 
 if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html='True'), name="static")
