@@ -8,7 +8,7 @@ from schemas import *
 from user import User
 
 prompts = {
-    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this. If necesssary, call tools to search info on the internet about a destination',
+    UserStatus.DISCUSSING: 'You are a quiet travel planner helping a tourist. Don\'t answer questions unrelated to this. If necesssary, call tools to search info on the internet about a destination, but only use their result if it\'s relevant',
     UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
     Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
     UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
