@@ -72,6 +72,13 @@ async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):
     else: m.favorite_messages[username][msg.id] = msg
     return list(m.favorite_messages[username].values())
 
+@app.post('/removeFavorite', response_model=List[m.Message])
+async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...)):
+    if username in m.favorite_messages and msg.id in m.favorite_messages[username]:
+        del m.favorite_messages[username][msg.id]
+    return list(m.favorite_messages[username].values())
+
+
 @app.get('/getFavorites', response_model=List[m.Message])
 async def getFavorites(username: str):
     if username not in m.favorite_messages: return []

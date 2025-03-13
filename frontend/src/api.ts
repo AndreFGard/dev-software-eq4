@@ -53,10 +53,12 @@ export async function getFavorites(username: string): Promise<Message[]>{
 }
 
 export async function removeFromFavoritesBack(username, msg) {
+    console.log("Chamando API", username, msg);
     await fetch(`${apiUrl}/removeFavorite`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, content: msg.content }),
+      body: JSON.stringify({ 
+        username: username, msg:msg}),
     });
   }
   

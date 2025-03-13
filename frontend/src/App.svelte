@@ -10,6 +10,8 @@
   let error: string;
   import Sidebar from './components/Sidebar.svelte';
 
+  import { removeFromFavoritesBack } from './api';
+
   let messages = [
     { username: 'assistant', content: 'Hello! Im GPT.' },
     { username: 'User', content: "Can you help me?" }
