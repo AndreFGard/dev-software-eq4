@@ -61,3 +61,9 @@ class DB_Document(BaseModel):
     content: str
     site_id: int
     id: int = 0
+
+class LLMModelInfo(BaseModel):
+    url: str
+    model: str
+    rate_limit: str
+    key:str
