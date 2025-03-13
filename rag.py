@@ -46,7 +46,7 @@ except:
 from nltk.tokenize import TextTilingTokenizer
 
 class SlidingWindowChunking:
-    def __init__(self, window_size=70, step=35, openai_key=os.environ.get('OPENAI_KEY')):
+    def __init__(self, window_size=70, step=35, openai_key=os.environ.get('OPENAI_KEY') or 'INVALID'):
         self.window_size = window_size
         self.step = step
         self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
@@ -72,7 +72,7 @@ class SlidingWindowChunking:
 
         return DB_Site(url=site.url,
                         content=md,
-                       title=site.metadata.get('title'),
+                       title=site.metadata.get('title') or site.url,
                        chunks = chunks
                        )
 
@@ -88,7 +88,7 @@ class RAGOpenai(MasterOpenaiInterface):
               \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
             self.model = "gemma2-9b-it"
 
-    async def summarize(self, text):
+    async def summarize(self, text, manage_limits=True):
         messages=[
             GptMessage(role="system", 
                 content=self.summarize_prompt).model_dump(),
@@ -109,10 +109,10 @@ class RAGOpenai(MasterOpenaiInterface):
 
 import vdb, os
 class RAG:
-    def __init__(self, brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=4, demo_search=True):
+    def __init__(self, brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=10,  openai_key='', demo_search=False):
         self.sr = Searcher(brave_api_key, use_demo=demo_search)
         self.demo_search = demo_search
-        self.chunker = SlidingWindowChunking()
+        self.chunker = SlidingWindowChunking(openai_key=openai_key)
         self.top_results=top_results
         self.db = vdb.VecDb(TEMBO_PSQL_URL=TEMBO_PSQL_URL)
 
