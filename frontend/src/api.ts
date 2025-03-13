@@ -7,6 +7,7 @@ export interface Message{
     id?:Number;
 }
 
+
 export async function addMessage(msg: Message){
     const response = await fetch(`${apiUrl}/addMessage`, {
         method: 'POST',
