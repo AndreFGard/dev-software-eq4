@@ -13,7 +13,7 @@ class VecDb:
         self.engine = create_async_engine(self.url, echo=True)
     
     def _create_sites_table(self):
-        q = """CREATE TABLE sites (timestamp date, url varchar(400), content text, title varchar(100), id serial primary key);"""
+        q = """CREATE TABLE sites (timestamp date, url varchar(400), content text, title varchar(255), id serial primary key);"""
         print("create table not implemented")
     
     def _create_documents_table(self):
