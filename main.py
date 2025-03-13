@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
+
 settings=Settings()
 
 app = FastAPI()
@@ -33,7 +34,11 @@ app.add_middleware(
 )
 
 users = m.user_list
-openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,openai_key=settings.OPENAI_KEY)
+openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,
+                          openai_key=settings.OPENAI_KEY,
+                          brave_api_key=settings.BRAVE_KEY,
+                          TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
+
 print(settings.OPENAI_KEY)
 
 @app.get("/")
