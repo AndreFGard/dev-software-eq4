@@ -12,7 +12,7 @@ from crawl4ai import CrawlerRunConfig
 
 prune_filter = PruningContentFilter(
     threshold=0.5,
-    threshold_type="dynamic",  # or "dynamic"
+    threshold_type="fixed",  # or "dynamic"
     min_word_threshold=5
 )
 
@@ -29,8 +29,8 @@ crawler_config = CrawlerRunConfig(
     )
 )
 
-async def crawl4ai_crawl_many(urls: list) -> list[CrawlResult]:
-    crawler_config = crawler_config
+async def crawl4ai_crawl_many(urls: list,crawler_config = crawler_config) -> list[CrawlResult]:
+    
 
     async with AsyncWebCrawler() as crawler:
         result = await crawler.arun_many(
@@ -47,7 +47,7 @@ class SlidingWindowChunking:
     with a given step size. It also summarizes with an LLM if possible and filters the markdown
     """
 
-    def __init__(self, window_size=100, step=35, openai_key=os.environ.get('OPENAI_KEY') or 'INVALID'):
+    def __init__(self, window_size=100, step=35, openai_key=os.environ.get('OPENAI_KEY') or ''):
         self.window_size = window_size
         self.step = step
         self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
@@ -69,7 +69,7 @@ class SlidingWindowChunking:
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
         """
-        md = crawler_config.markdown_generator.generate_markdown(site.cleaned_html)
+        md = str(crawler_config.markdown_generator.generate_markdown(site.cleaned_html))
 
         if (len(md) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(md)
