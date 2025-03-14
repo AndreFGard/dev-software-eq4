@@ -65,5 +65,5 @@ class DB_Document(BaseModel):
 class LLMModelInfo(BaseModel):
     url: str
     model: str
-    rate_limit: str
+    rate_limit: int
     key:str
