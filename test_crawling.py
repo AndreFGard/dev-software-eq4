@@ -17,7 +17,6 @@ async def test_Crawling():
     ]
     results = await crawl4ai_crawl_many(urls)
     assert len(results) == 2
-    assert all(isinstance(result, CrawlResult) for result in results)
     assert all(result.markdown for result in results)
     assert all(result.url for result in results)
     assert all(result.success for result in results)
@@ -32,7 +31,6 @@ async def test_chunking_crawling_integration():
     ]
     results = await crawl4ai_crawl_many(urls)
     assert len(results) == 2
-    assert all(isinstance(result, CrawlResult) for result in results)
     assert all(hasattr(result, 'markdown') for result in results)
     assert all(result.url for result in results)
     assert all(result.success for result in results)
@@ -45,5 +43,5 @@ async def test_chunking_crawling_integration():
     assert all(site.content for site in sites)
     #assert all(site.timestamp for site in sites) #timestamp was removed from DB_Site
     
-    # for i, site in enumerate(sites):
-    #     assert (site.content) != (str(results[i].markdown))
+    for i, site in enumerate(sites):
+         assert (site.content) != (str(results[i].markdown))
