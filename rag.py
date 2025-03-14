@@ -71,7 +71,7 @@ class SlidingWindowChunking:
         """
         md = crawler_config.markdown_generator.generate_markdown(site.cleaned_html)
 
-        if len(md) < self.llm.rate_limit:
+        if (len(md) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(md)
         
         chunks = self.chunk(str(md))
