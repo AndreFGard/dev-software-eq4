@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import staticfiles, Body
 from typing import List
 import model as m
@@ -13,16 +13,18 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 
+from schemas import LLMModelInfo
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''
     TEMBO_PSQL_URL: str = ''
-    class Config:
-        env_file = ".env"
+    HIGH_LIMIT_MODELS: list[LLMModelInfo] = []
+
+    model_config = SettingsConfigDict(env_nested_delimiter='__', env_file='.env')
 
 
 settings=Settings()
-
+print(settings.HIGH_LIMIT_MODELS)
 app = FastAPI()
 
 app.add_middleware(
