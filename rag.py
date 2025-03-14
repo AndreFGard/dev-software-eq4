@@ -12,38 +12,33 @@ from crawl4ai import CrawlerRunConfig
 
 prune_filter = PruningContentFilter(
     threshold=0.5,
-    threshold_type="fixed",  # or "dynamic"
+    threshold_type="dynamic",  # or "dynamic"
     min_word_threshold=5
 )
 
-async def crawl4ai_crawl_many(urls: list) -> list[CrawlResult]:
-    crawler_config = CrawlerRunConfig(
-        cache_mode=CacheMode.ENABLED,
-        excluded_tags=['a'],
-        markdown_generator=DefaultMarkdownGenerator(
-            content_filter=prune_filter,
-            options={
-                "ignore_links":True,
-                "ignore_images": True,
-                "escape_html": False
-            }
-        )
+crawler_config = CrawlerRunConfig(
+    cache_mode=CacheMode.ENABLED,
+    excluded_tags=['a'],
+    markdown_generator=DefaultMarkdownGenerator(
+        content_filter=prune_filter,
+        options={
+            "ignore_links":True,
+            "ignore_images": True,
+            "escape_html": False
+        }
     )
+)
+
+async def crawl4ai_crawl_many(urls: list) -> list[CrawlResult]:
+    crawler_config = crawler_config
 
     async with AsyncWebCrawler() as crawler:
         result = await crawler.arun_many(
             urls=urls, config=crawler_config, 
         )
+
         return result    
 
-
-import nltk
-try:
-    from nltk.tokenize import TextTilingTokenizer
-except:
-    nltk.download('stopwords')
-
-from nltk.tokenize import TextTilingTokenizer
 
 class SlidingWindowChunking:
     """
@@ -65,7 +60,7 @@ class SlidingWindowChunking:
         self.step = step
         self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
 
-    #
+    
     def chunk(self, text):
         words = text.split()
         chunks = []
@@ -78,7 +73,15 @@ class SlidingWindowChunking:
     
     #todo move the summarizer out of here
     async def _add_chunks(self, site: CrawlResult) -> list[DB_Site]:
-        md = site.markdown.fit_markdown or site.markdown or " "
+        """
+        Asynchronously processes a CrawlResult object to generate markdown content,
+        summarize it if necessary, and split it into chunks.
+        Returns:
+            list[DB_Site]: A list containing a DB_Site object with the processed content,
+                           including the URL, markdown content, title, and chunks.
+        """
+        md = crawler_config.markdown_generator.generate_markdown(site.cleaned_html)
+
         if len(md) < self.llm.rate_limit:
             md = await self.llm.summarize(md)
         
@@ -90,7 +93,6 @@ class SlidingWindowChunking:
                        chunks = chunks
                        )
 
-from concurrent.futures import ThreadPoolExecutor
 
 class RAGOpenai(MasterOpenaiInterface):
     def __init__(self, openai_key="", useDummy=False):
