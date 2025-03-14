@@ -46,7 +46,21 @@ except:
 from nltk.tokenize import TextTilingTokenizer
 
 class SlidingWindowChunking:
-    def __init__(self, window_size=70, step=35, openai_key=os.environ.get('OPENAI_KEY') or 'INVALID'):
+    """
+    A class used to perform sliding window chunking on text data.
+    This class provides methods to split text into chunks of a specified window size
+    with a given step size. It also includes functionality to summarize text using
+    an external language model.
+    Methods
+    -------
+    chunk(text)
+        Splits the input text into chunks based on the window size and step size.
+    _add_chunks(site)
+        Asynchronously processes a CrawlResult object to generate markdown, summarize it,
+        and split it into chunks.
+    """
+
+    def __init__(self, window_size=100, step=35, openai_key=os.environ.get('OPENAI_KEY') or 'INVALID'):
         self.window_size = window_size
         self.step = step
         self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
