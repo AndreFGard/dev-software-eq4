@@ -69,7 +69,7 @@ class SlidingWindowChunking:
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
         """
-        md = str(crawler_config.markdown_generator.generate_markdown(site.cleaned_html))
+        md = str(crawler_config.markdown_generator.generate_markdown(site.cleaned_html).fit_markdown) or site.markdown
 
         if (len(md) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(md)
