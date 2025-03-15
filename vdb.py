@@ -13,7 +13,7 @@ class VecDb:
         self.engine = create_async_engine(self.url, echo=True)
     
     def _create_sites_table(self):
-        q = """CREATE TABLE sites (timestamp date, url varchar(400), content text, title varchar(255), id serial primary key);"""
+        q = """CREATE TABLE sites (timestamp date, url varchar(400), title varchar(255), id serial primary key);"""
         print("create table not implemented")
     
     def _create_documents_table(self):
@@ -31,9 +31,10 @@ class VecDb:
         async with self.engine.begin() as conn:
             ids = []
             for obj in dumped:
+                obj.pop("content")
                 result = await conn.execute(
-                    text("""INSERT INTO sites (timestamp, url, content, title) 
-                        VALUES(NOW(), :url, :content, :title) 
+                    text("""INSERT INTO sites (timestamp, url, title) 
+                        VALUES(NOW(), :url, :title) 
                         RETURNING id"""), obj
                 )
                 ids.append(result.first().id)
@@ -44,7 +45,7 @@ class VecDb:
 
             doc_result = await conn.execute(text("""INSERT INTO documents (content, last_updated_at, site_id) VALUES(:content, NOW(), :site_id)
                         """), flatdocs)
-            
+            x = 4
 
         return id
     
