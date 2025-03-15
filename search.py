@@ -8,7 +8,7 @@ search_url = "https://api.search.brave.com/res/v1/web/search"
 def _update_demo(fname="searchdemo.json"):
     f = open(fname,"w")
     import os
-    x = asyncio.run(Searcher(os.getenv('BRAVE_KEY'), use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
+    x = asyncio.run(Searcher(os.getenv('BRAVE_KEY') or "", use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
     import json
     json.dump(x, f)
     f.close()
@@ -18,11 +18,11 @@ class SearchItem(BaseModel):
     url: str
     is_source_local: bool
     is_source_both: bool
-    description: str = None
-    page_age: str = None
-    page_fetched: str = None
-    profile: dict = None
-    language: str = None
+    description: str = ""
+    page_age: str = ""
+    page_fetched: str = ""
+    profile: dict = {}
+    language: str = ""
     family_friendly: bool = False
 
 def getDemoResults():
