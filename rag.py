@@ -37,7 +37,7 @@ async def crawl4ai_crawl_many(urls: list,crawler_config = crawler_config) -> lis
             urls=urls, config=crawler_config, 
         )
 
-        return result    
+        return result   #type: ignore 
 
 
 class SlidingWindowChunking:
@@ -47,15 +47,18 @@ class SlidingWindowChunking:
     with a given step size. It also summarizes with an LLM if possible and filters the markdown
     """
 
-    def __init__(self, window_size=100, step=35):
+    def __init__(self, window_size=135, step=35):
         self.window_size = window_size
         self.step = step
     
-    def chunk(self, text) -> list[str]:
-        words = text.split()
+    def chunk(self, text, window_size=0,step=0) -> list[str]:
+        window_size = window_size or self.window_size
+        step = step or self.step
+
+        words = text.split(" ")
         chunks = []
-        for i in range(0, len(words) - self.window_size + 1, self.step):
-            chosen = words[i:i + self.window_size]
+        for i in range(0, len(words) - window_size + 1, step):
+            chosen = words[i:i + window_size]
             if chosen:
                 chunks.append(' '.join(chosen))
 
@@ -64,18 +67,16 @@ class SlidingWindowChunking:
 
 
 class RAGOpenai(MasterOpenaiInterface):
-    def __init__(self, openai_key="", useDummy=False):
-            super().__init__(openai_key=openai_key, useDummy=useDummy)
+    def __init__(self, cheap_models:list[LLMModelInfo], useDummy=False):
+            super().__init__(cheap_models=cheap_models, useDummy=useDummy)
 
             self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
               provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
               Do not include phrases like \"Sure!\" or
               \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
-            self.model = "gemma2-9b-it"
-            self.models: list[LLMModelInfo] = []
             self.chunker = SlidingWindowChunking(window_size=self.rate_limit//2, step=90)
 
-    async def __summarize_req(self, piece:str, openai: AsyncOpenAI):
+    async def __summarize_req(self, piece:str):
         messages=[
             GptMessage(role="system", 
                 content=self.summarize_prompt).model_dump(),
@@ -86,35 +87,41 @@ class RAGOpenai(MasterOpenaiInterface):
 
         [m.pop("id") for m in messages]
         
-        completion = await openai.chat.completions.create(
+        completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
-            messages=messages
-        )
+            messages=messages #type: ignore
+        ) 
 
         return completion.choices[0].message.content
 
-    async def summarize(self, text, manage_limits=True):
-        pieces = self.chunker.chunk(text)
-        rate = self.rate_limit//2
-
+    async def summarize(self, text: str, manage_limits=False)-> str:
+        pieces : list[str] = [text]
+        n_reqs = 1
+        if manage_limits:
+            ...
+        else:
+            pieces = [text] 
+        
         results = []
         for piece in pieces:
             try:
-                results.append(self.__summarize_req(piece))
-            except:
-                ...
+                results.append(await self.__summarize_req(piece))
+            except Exception as e:
+                print("ERROR SUMMARIZING: " + str(e))
+        return '\n'.join(results)
     
-
 
 import vdb, os
 class RAG:
-    def __init__(self, brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=10,  openai_key='', demo_search=False):
+    def __init__(self, cheap_models: list[LLMModelInfo], brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=5, demo_search=False):
+        """This class requires a list of cheap models"""
+
         self.sr = Searcher(brave_api_key, use_demo=demo_search)
         self.demo_search = demo_search
-        self.chunker = SlidingWindowChunking(openai_key=openai_key)
+        self.chunker = SlidingWindowChunking()
         self.top_results=top_results
-        self.db = vdb.VecDb(TEMBO_PSQL_URL=TEMBO_PSQL_URL)
-        self.llm = RAGOpenai(openai_key=openai_key, useDummy=False)
+        self.db = vdb.VecDb(TEMBO_PSQL_URL=TEMBO_PSQL_URL) #type: ignore
+        self.llm = RAGOpenai(cheap_models=cheap_models, useDummy=False)
 
     async def search_and_crawl(self, query=""):
         srItems = await self.sr.search(query)
@@ -122,27 +129,30 @@ class RAG:
         results = await crawl4ai_crawl_many(urls=[site.url for i,site in zip(range(self.top_results), srItems)])
         return results
     
-    async def CrawlResult_to_DB_Site(self, site: CrawlResult, crawler_config=crawler_config) -> list[DB_Site]:
+    async def CrawlResult_to_DB_Site(self, site: CrawlResult, crawler_config=crawler_config) -> DB_Site:
         """
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
         """
-        md = str(crawler_config.markdown_generator.generate_markdown(site.cleaned_html).fit_markdown) or site.markdown
+        md = str(crawler_config.markdown_generator.generate_markdown(str(site.cleaned_html)).fit_markdown or site.markdown)
 
         if (len(md) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(md)
+        else: 
+            print("ERROR SUMMARIZING: TOO LONG")
         
-        chunks = self.chunk(str(md))
+        chunks = self.chunker.chunk(str(md))
+        title = (site.metadata or {}).get('title') or site.url
 
         return DB_Site(url=site.url,
                         content=md,
-                       title=site.metadata.get('title') or site.url,
+                       title=title,
                        chunks = chunks
                        )
 
 
-    async def add_chunks(self, sites: list[CrawlResult]) -> list[CrawlResultChunked]:
-        """do topic segmentation/chunking in the content of many sites in parallel"""
+    async def add_chunks(self, sites: list[CrawlResult]) -> list[DB_Site]:
+        """do topic segmentation/chunking"""
         results = [await self.CrawlResult_to_DB_Site(site) for site in sites]
         return results
     
@@ -161,12 +171,12 @@ class RAG:
 
     
 async def demo():
-    rag = RAG(brave_api_key=brave_key, demo_search=True)
-    await rag.db.retrieve_no_search("what to do in rio")
+    #rag = RAG(brave_api_key=brave_key, demo_search=True)
+    #await rag.db.retrieve_no_search("what to do in rio")
     query = "Best Tourist attractions in Rio de Janeiro"
     # crawled_results = asyncio.run( rag.search_and_crawl(query))
     # segmented_results = rag.add_chunks(crawled_results)
     # for result in segmented_results:
     #     print("\n\n\tCHUNK BLOCK")
     #     #[print(f"\n\t\tCHUNK: ---{chunk}") for chunk in result.chunks]
-    return await (rag.store_search(query))
+    # return await (rag.store_search(query))
