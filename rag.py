@@ -70,7 +70,7 @@ class SlidingWindowChunking:
 class RAGOpenai(MasterOpenaiInterface):
     def __init__(self, cheap_models:list[LLMModelInfo], useDummy=False):
             super().__init__(cheap_models=cheap_models, useDummy=useDummy)
-
+            print(f"RAG: using {self.model}")
             self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
               provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
               Do not include phrases like \"Sure!\" or
@@ -114,7 +114,7 @@ class RAGOpenai(MasterOpenaiInterface):
 
 import vdb, os
 class RAG:
-    def __init__(self, cheap_models: list[LLMModelInfo], brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=5, demo_search=False):
+    def __init__(self, cheap_models: list[LLMModelInfo], brave_api_key="", TEMBO_PSQL_URL=os.environ.get('TEMBO_PSQL_URL'), top_results=4, demo_search=False):
         """This class requires a list of cheap models"""
 
         self.sr = Searcher(brave_api_key, use_demo=demo_search)
@@ -139,11 +139,11 @@ class RAG:
         md = oldmd
         if (len(oldmd) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(oldmd)
-            print('f{SUMMARIZING REDUCTION: {(100*len(oldmd)/len(md)):.1f}%')
+            print(f'RPUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(site.markdown)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
         else:
             print("ERROR SUMMARIZING: TOO LONG")
         
-        chunks = self.chunker.chunk(str(md))
+        chunks = [chnk for chnk in self.chunker.chunk(str(md)) if len(chnk)]
         title = (site.metadata or {}).get('title') or site.url
 
         return DB_Site(url=site.url,
@@ -160,7 +160,7 @@ class RAG:
     
     async def search_store(self, query):
         results = [site for site in await self.search_and_crawl(query) if site.success]
-        results = await self.add_chunks(results) 
+        results = [res for res in await self.add_chunks(results) if (res.chunks and res.url and res.title)]
         return await self.db.insert_sites_n_chunks(results)
     
     async def retrieve_no_search(self, query) -> list[str]:
