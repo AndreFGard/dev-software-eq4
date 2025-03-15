@@ -1,4 +1,5 @@
-from search import Searcher, SearchItem
+from search import Searcher
+
 import asyncio
 import os
 from schemas import *
@@ -137,7 +138,7 @@ class RAG:
         """
         oldmd = str(crawler_config.markdown_generator.generate_markdown(str(site.cleaned_html)).fit_markdown or site.markdown)
         md = oldmd
-        if (len(oldmd) < self.llm.rate_limit) and self.llm.openai:
+        if isinstance(self.llm.rate_limit, int) and (len(oldmd) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(oldmd)
             print(f'RPUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(site.markdown)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
         else:

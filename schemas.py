@@ -64,6 +64,7 @@ class MasterOpenaiInterface:
         """Start using another LLM model from now on"""
         self.model = model.model
         self.rate_limit = model.rate_limit
+        self.base_url = model.url 
         self.openai = AsyncOpenAI(
             base_url=model.url,
             api_key=model.key
@@ -74,3 +75,14 @@ class DB_Document(BaseModel):
     site_id: int
     id: int = 0
 
+class SearchItem(BaseModel):
+    title: str
+    url: str
+    is_source_local: bool
+    is_source_both: bool
+    description: str = ""
+    page_age: str = ""
+    page_fetched: str = ""
+    profile: dict = {}
+    language: str = ""
+    family_friendly: bool = False
