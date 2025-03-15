@@ -32,10 +32,11 @@ class OpenaiInteface(MasterOpenaiInterface):
     Parameters:
     useDummy (bool): usar um chatbot fake ou não;."""
 
-    def __init__(self, useDummy=True, openai_key="",brave_api_key="",TEMBO_PSQL_URL="", **kwargs):
-        super().__init__(useDummy=useDummy, openai_key=openai_key)
-        self.RAG = RAG(brave_api_key=brave_api_key, TEMBO_PSQL_URL=TEMBO_PSQL_URL,demo_search=False)
-        self.model = "gemma2-9b-it"
+    def __init__(self, main_model: LLMModelInfo, useDummy=True, cheap_models:list[LLMModelInfo]=[],brave_api_key="",TEMBO_PSQL_URL="", **kwargs):
+        super().__init__(useDummy=useDummy, cheap_models=cheap_models, main_model=main_model)
+        if not cheap_models: cheap_models = [main_model]
+        self.RAG = RAG(cheap_models=cheap_models, brave_api_key=brave_api_key, TEMBO_PSQL_URL=TEMBO_PSQL_URL,demo_search=False)
+
 
 
     def getSystemMessage(self, user: User):
@@ -43,9 +44,9 @@ class OpenaiInteface(MasterOpenaiInterface):
 
     async def reply(self, user:User):
         if self.openai:
-            return await self.completion_with_tool(user)
+            return await self.completion_with_tool(user) or ""
         else: 
-            return await answerDummy(user)
+            return await answerDummy(user) or ""
 
     async def retrieve_info(self, query:str) -> list[str]:
         """Searches a query on the internet and on the knowledge database and returns the top most relevant texts"""
@@ -58,9 +59,9 @@ class OpenaiInteface(MasterOpenaiInterface):
         messages=self.getSystemMessage(user) + user.dumpHistory()
 
         [m.pop("id") for m in messages]
-        completion = await self.openai.chat.completions.create(
+        completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
-            messages=messages
+            messages=messages #type: ignore
         )
         return completion.choices[0].message.content
     
@@ -91,10 +92,10 @@ class OpenaiInteface(MasterOpenaiInterface):
         [m.pop("id") for m in messages]
         
         # First call with tool definition
-        completion = await self.openai.chat.completions.create(
+        completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
-            messages=messages,
-            tools=tools,
+            messages=messages, #type: ignore
+            tools=tools, #type: ignore
             tool_choice="auto"
         )
         
@@ -116,16 +117,16 @@ class OpenaiInteface(MasterOpenaiInterface):
                     
                     # Add tool response to messages
                     tool_messages.append({
-                        "tool_call_id": tool_call.id,
-                        "role": "tool",
-                        "name": "retrieve_info",
-                        "content": str(info_results)
+                        "tool_call_id": tool_call.id, #type: ignore
+                        "role": "tool", #type: ignore
+                        "name": "retrieve_info", #type: ignore
+                        "content": str(info_results) #type: ignore
                     })
             
             # Second call with the tool results
-            second_completion = await self.openai.chat.completions.create(
+            second_completion = await self.openai.chat.completions.create( #type: ignore
                 model=self.model,
-                messages=messages + tool_messages
+                messages=messages + tool_messages  #type: ignore
             )
             
             return second_completion.choices[0].message.content
