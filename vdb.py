@@ -49,7 +49,7 @@ class VecDb:
 
         return id
     
-    async def retrieve_no_search(self,query:str):
+    async def retrieve_no_search(self,query:str) -> list[str]:
         async with self.engine.begin() as conn:
             result = await conn.execute(text("""select * from vectorize.search(
                                        job_name=>'docs_search',

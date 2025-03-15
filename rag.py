@@ -61,7 +61,8 @@ class SlidingWindowChunking:
             chosen = words[i:i + window_size]
             if chosen:
                 chunks.append(' '.join(chosen))
-
+        if not chunks:
+            chunks = [text]
         return chunks
     
 
@@ -134,11 +135,12 @@ class RAG:
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
         """
-        md = str(crawler_config.markdown_generator.generate_markdown(str(site.cleaned_html)).fit_markdown or site.markdown)
-
-        if (len(md) < self.llm.rate_limit) and self.llm.openai:
-            md = await self.llm.summarize(md)
-        else: 
+        oldmd = str(crawler_config.markdown_generator.generate_markdown(str(site.cleaned_html)).fit_markdown or site.markdown)
+        md = oldmd
+        if (len(oldmd) < self.llm.rate_limit) and self.llm.openai:
+            md = await self.llm.summarize(oldmd)
+            print('f{SUMMARIZING REDUCTION: {(100*len(oldmd)/len(md)):.1f}%')
+        else:
             print("ERROR SUMMARIZING: TOO LONG")
         
         chunks = self.chunker.chunk(str(md))
@@ -161,10 +163,10 @@ class RAG:
         results = await self.add_chunks(results) 
         return await self.db.insert_sites_n_chunks(results)
     
-    async def retrieve_no_search(self, query):
+    async def retrieve_no_search(self, query) -> list[str]:
         return await self.db.retrieve_no_search(query)
     
-    async def retrieve_with_search(self, query):
+    async def retrieve_with_search(self, query) -> list[str]:
         await self.search_store(query)
         return await self.db.retrieve_no_search(query)
 
