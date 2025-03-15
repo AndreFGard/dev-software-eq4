@@ -39,7 +39,7 @@ class VecDb:
                 )
                 ids.append(result.first().id)
 
-            docs = [[DB_Document(content=chunk, site_id=id).model_dump() for chunk in site.chunks] for id,site in zip(ids, sites)]
+            docs = [[DB_Document(content=chunk + " ", site_id=id).model_dump() for chunk in site.chunks if len(chunk)] for id,site in zip(ids, sites)]
             flatdocs = []
             for l in docs: flatdocs += l
 
