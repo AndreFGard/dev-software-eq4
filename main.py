@@ -8,6 +8,7 @@ import model as m
 import uvicorn
 import os
 import sys
+import asyncio
 
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
@@ -45,7 +46,9 @@ openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,
                             cheap_models=settings.HIGH_LIMIT_MODELS,
                             brave_api_key=settings.BRAVE_KEY,
                             TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
-
+@app.on_event("startup")
+async def startup_event():
+    await openai.RAG.db._create_tables()
 
 @app.get("/")
 async def root():

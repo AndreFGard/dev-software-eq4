@@ -33,7 +33,7 @@ crawler_config = CrawlerRunConfig(
 async def crawl4ai_crawl_many(urls: list,crawler_config = crawler_config) -> list[CrawlResult]:
     
 
-    async with AsyncWebCrawler() as crawler:
+    async with AsyncWebCrawler(config=BrowserConfig(verbose=False)) as crawler:
         result = await crawler.arun_many(
             urls=urls, config=crawler_config, 
         )
@@ -126,9 +126,12 @@ class RAG:
         self.llm = RAGOpenai(cheap_models=cheap_models, useDummy=False)
 
     async def search_and_crawl(self, query=""):
+        start = time.time()
         srItems = await self.sr.search(query)
-
+        print(f"SEARCH: {time.time()-start:.3f}")
+        start = time.time()
         results = await crawl4ai_crawl_many(urls=[site.url for i,site in zip(range(self.top_results), srItems)])
+        print(f"CRAWL: {time.time()-start:.3f}")
         return results
     
     async def CrawlResult_to_DB_Site(self, site: CrawlResult, crawler_config=crawler_config) -> DB_Site:
@@ -156,7 +159,9 @@ class RAG:
 
     async def add_chunks(self, sites: list[CrawlResult]) -> list[DB_Site]:
         """do topic segmentation/chunking"""
-        results = [await self.CrawlResult_to_DB_Site(site) for site in sites]
+        start = time.time()
+        results = await asyncio.gather(*[self.CrawlResult_to_DB_Site(site) for site in sites])
+        print(f"CHUNKING and summarizing: {time.time()-start:.3f}")
         return results
     
     async def search_store(self, query):
@@ -165,7 +170,10 @@ class RAG:
         return await self.db.insert_sites_n_chunks(results)
     
     async def retrieve_no_search(self, query) -> list[str]:
-        return await self.db.retrieve_no_search(query)
+        start = time.time()
+        x = await self.db.retrieve_no_search(query)
+        print(f"RETRIEVAL: {time.time()-start:.3f}")
+        return x
     
     async def retrieve_with_search(self, query) -> list[str]:
         await self.search_store(query)

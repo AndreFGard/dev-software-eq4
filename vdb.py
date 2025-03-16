@@ -5,28 +5,37 @@ from itertools import chain
 from schemas import *
 
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy import text
+from sqlalchemy import TEXT, text
 class VecDb:
     def __init__(self, TEMBO_PSQL_URL:str ):
         self.TEMBO_PSQL_URL = TEMBO_PSQL_URL
         self.url = self.TEMBO_PSQL_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-        self.engine = create_async_engine(self.url, echo=True)
-    
-    def _create_sites_table(self):
-        q = """CREATE TABLE sites (timestamp date, url varchar(400), title varchar(255), id serial primary key);"""
-        print("create table not implemented")
-    
-    def _create_documents_table(self):
-        q = """CREATE TABLE documents (content text, site_id int, id serial primary key,
-                    last_updated_at TIMESTAMP WITHOUT TIME ZONE,
-                    CONSTRAINT fk_sites FOREIGN KEY (site_id) REFERENCES sites(id));"""
-        print("create table not implemented")
+        self.engine = create_async_engine(self.url, echo=False)
 
+    
+    async def _create_tables(self):
+        sitesq = """CREATE TABLE sites (timestamp date, url varchar(400), title varchar(255), id serial primary key);"""
+
+        documentsq = """CREATE TABLE documents (content text, site_id int, id serial primary key,
+            last_updated_at TIMESTAMP WITHOUT TIME ZONE,
+            CONSTRAINT fk_sites FOREIGN KEY (site_id) REFERENCES sites(id));"""
+        async with self.engine.begin() as conn:
+            try:
+                await conn.execute(text(sitesq))
+                await conn.execute(text(documentsq))
+            except:
+                ...
+    
+    
     async def insert_sites_n_chunks(self, sites: list[DB_Site]):
         """returns site id"""
         id = 0
         dumped = [site.model_dump() for site in sites]
         #todo use ORM to be able to batch insert
+        import time
+        start = time.time()
+
+        
 
         async with self.engine.begin() as conn:
             ids = []
@@ -37,7 +46,10 @@ class VecDb:
                         VALUES(NOW(), :url, :title) 
                         RETURNING id"""), obj
                 )
-                ids.append(result.first().id)
+                ids.append(result.first().id) #type: ignore
+
+            print(f"BENCH: site insertion: {time.time()-start:.3f}")
+            start = time.time()
 
             docs = [[DB_Document(content=chunk + " ", site_id=id).model_dump() for chunk in site.chunks if len(chunk)] for id,site in zip(ids, sites)]
             flatdocs = []
@@ -45,6 +57,7 @@ class VecDb:
 
             doc_result = await conn.execute(text("""INSERT INTO documents (content, last_updated_at, site_id) VALUES(:content, NOW(), :site_id)
                         """), flatdocs)
+            print(f"BENCH: doc insertion: {time.time()-start:.3f}")
             x = 4
 
         return id
