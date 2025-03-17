@@ -28,7 +28,15 @@ Requirementos:
 - python 3.12 [atenção especial para o MacOS](https://www.python.org/downloads/)
 - pip
 - node
-- uma chave de api do groq.com
+- criar um arquivo .env no seguinte formato:
+```bash
+BRAVE_KEY=#uma chave de api de pesquisa do brave [Brave Search API](https://search.brave.com/help/api)
+TEMBO_PSQL_URL=#url completo de uma instância de Postgres+vectorDB da [Tembo.io](https://tembo.io)
+OPENAI_KEY=#uma chave de api do [groq](https://groq.com)
+HIGH_LIMIT_MODELS='[{"model": "#nome de um modelo LLM", "url": "#url da api de algum provedor de LLMs", "rate_limit": 50000, "key": "#chave de api deste provedor"}]'
+
+```
+>Pode-se optar por fornecer o HIGH_LIMIT_MODELS mas não o OPENAI_KEY, para evitar criar também uma chave do groq
 
 Todos exceto o python serão instalados automaticamente no passo seguinte.
 
@@ -51,7 +59,7 @@ bash install_tools.sh
 ###
 
 <h4 align="left">No Windows:</h4>
-Usando um shell gitbash,
+Usando um shell gitbash
 
 ```bash
 bash frontend_windows.sh
@@ -69,7 +77,8 @@ npm run dev
 ###
 
 <h2 align="left">Executar Backend:</h2>
-configure a env var OPENAI_KEY para a sua chave de api do groq.com
+Após criar o .env, 
+
 ```bash
 fastapi run main.py
 ```
@@ -80,5 +89,4 @@ fastapi run main.py
 
 - Determinação das tecnologias:
     - Foi escolhido FastAPI como backend e o Svelte.js como framework frontend, com o uso do pydantic e do typescript, respectivamente, para facilitar a validação de tipos e o desenvolvimento do projeto.
-
 
