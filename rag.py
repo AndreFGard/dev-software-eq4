@@ -69,8 +69,8 @@ class SlidingWindowChunking:
 
 
 class RAGOpenai(MasterOpenaiInterface):
-    def __init__(self, cheap_models:list[LLMModelInfo], useDummy=False):
-            super().__init__(cheap_models=cheap_models, useDummy=useDummy)
+    def __init__(self, cheap_models:list[LLMModelInfo]):
+            super().__init__(cheap_models=cheap_models)
             print(f"RAG: using {self.model}")
             self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
               provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
@@ -123,7 +123,7 @@ class RAG:
         self.chunker = SlidingWindowChunking()
         self.top_results=top_results
         self.db = vdb.VecDb(TEMBO_PSQL_URL=TEMBO_PSQL_URL) #type: ignore
-        self.llm = RAGOpenai(cheap_models=cheap_models, useDummy=False)
+        self.llm = RAGOpenai(cheap_models=cheap_models)
 
     async def search_and_crawl(self, query=""):
         start = time.time()

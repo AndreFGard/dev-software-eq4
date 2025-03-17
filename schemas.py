@@ -44,20 +44,16 @@ class LLMModelInfo(BaseModel):
     key:str
 
 class MasterOpenaiInterface:
-    def __init__(self, main_model: LLMModelInfo | None = None, useDummy=True, cheap_models: list[ LLMModelInfo] = [], **kwargs):
+    def __init__(self, main_model: LLMModelInfo | None = None, cheap_models: list[ LLMModelInfo] = [], **kwargs):
         self.openai: AsyncOpenAI | None = None
         self.cheap_models=cheap_models
-        useDummy = useDummy or not (main_model or cheap_models)
-        if (useDummy):
-            #nao usar o chatgpt de verdade
-            self.openai = None
+
+        if main_model:
+            self.switch_to_model(main_model)
+            self.main_model = main_model
         else:
-            if main_model:
-                self.switch_to_model(main_model)
-                self.main_model = main_model
-            else:
-                self.main_model = cheap_models[0]
-                self.switch_to_model(cheap_models[0])
+            self.main_model = cheap_models[0]
+            self.switch_to_model(cheap_models[0])
 
 
     def switch_to_model(self, model: LLMModelInfo):

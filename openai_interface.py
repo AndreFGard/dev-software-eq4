@@ -30,10 +30,11 @@ class OpenaiInteface(MasterOpenaiInterface):
     as respostas de um chatbot.
     Essa classe deve preparar os parametros, prompts e outras coisas
     Parameters:
-    useDummy (bool): usar um chatbot fake ou não;."""
+    """
 
-    def __init__(self, main_model: LLMModelInfo, useDummy=True, cheap_models:list[LLMModelInfo]=[],brave_api_key="",TEMBO_PSQL_URL="", **kwargs):
-        super().__init__(useDummy=useDummy, cheap_models=cheap_models, main_model=main_model)
+    def __init__(self, main_model: LLMModelInfo | None , cheap_models:list[LLMModelInfo]=[],brave_api_key="",TEMBO_PSQL_URL="", **kwargs):
+        if not main_model: main_model= cheap_models[0]
+        super().__init__(cheap_models=cheap_models, main_model=main_model)
         if not cheap_models: cheap_models = [main_model]
         self.RAG = RAG(cheap_models=cheap_models, brave_api_key=brave_api_key, TEMBO_PSQL_URL=TEMBO_PSQL_URL,demo_search=False)
 

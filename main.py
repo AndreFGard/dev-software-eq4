@@ -38,10 +38,10 @@ app.add_middleware(
 main_model = LLMModelInfo(url="https://api.groq.com/openai/v1",
                 model="gemma2-9b-it",
                 rate_limit=8000,
-                key=settings.OPENAI_KEY)
+                key=settings.OPENAI_KEY) if settings.OPENAI_KEY else None
 
 users = m.user_list
-openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,
+openai = m.OpenaiInteface(
                             main_model=main_model,
                             cheap_models=settings.HIGH_LIMIT_MODELS,
                             brave_api_key=settings.BRAVE_KEY,
