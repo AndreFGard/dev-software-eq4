@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-
+from schemas import SearchItem
 from  pydantic import BaseModel
 brave_api_key = ""  # Add your Brave API key here
 search_url = "https://api.search.brave.com/res/v1/web/search"
@@ -8,22 +8,11 @@ search_url = "https://api.search.brave.com/res/v1/web/search"
 def _update_demo(fname="searchdemo.json"):
     f = open(fname,"w")
     import os
-    x = asyncio.run(Searcher(os.getenv('BRAVE_KEY'), use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
+    x = asyncio.run(Searcher(os.getenv('BRAVE_KEY') or "", use_demo=False)._search_brave("what to do in olinda pernambuco brazil"))
     import json
     json.dump(x, f)
     f.close()
 
-class SearchItem(BaseModel):
-    title: str
-    url: str
-    is_source_local: bool
-    is_source_both: bool
-    description: str = None
-    page_age: str = None
-    page_fetched: str = None
-    profile: dict = None
-    language: str = None
-    family_friendly: bool = False
 
 def getDemoResults():
         import json

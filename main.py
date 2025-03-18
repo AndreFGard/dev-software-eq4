@@ -8,6 +8,7 @@ import model as m
 import uvicorn
 import os
 import sys
+import asyncio
 
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
@@ -24,7 +25,6 @@ class Settings(BaseSettings):
 
 
 settings=Settings()
-print(settings.HIGH_LIMIT_MODELS)
 app = FastAPI()
 
 app.add_middleware(
@@ -35,13 +35,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-users = m.user_list
-openai = m.OpenaiInteface(useDummy=not settings.OPENAI_KEY,
-                          openai_key=settings.OPENAI_KEY,
-                          brave_api_key=settings.BRAVE_KEY,
-                          TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
+main_model = LLMModelInfo(url="https://api.groq.com/openai/v1",
+                model="gemma2-9b-it",
+                rate_limit=8000,
+                key=settings.OPENAI_KEY) if settings.OPENAI_KEY else None
 
-print(settings.OPENAI_KEY)
+users = m.user_list
+openai = m.OpenaiInteface(
+                            main_model=main_model,
+                            cheap_models=settings.HIGH_LIMIT_MODELS,
+                            brave_api_key=settings.BRAVE_KEY,
+                            TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
+@app.on_event("startup")
+async def startup_event():
+    await openai.RAG.db._create_tables()
 
 @app.get("/")
 async def root():
@@ -96,7 +103,7 @@ async def getFavorites(username: str):
     return list(m.favorite_messages[username].values())
 
 if os.path.exists('frontend/dist'):
-    app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html='True'), name="static")
+    app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html=True), name="static")
 else:
     print("Not serving static files, please build them")
 

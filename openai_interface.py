@@ -30,12 +30,14 @@ class OpenaiInteface(MasterOpenaiInterface):
     as respostas de um chatbot.
     Essa classe deve preparar os parametros, prompts e outras coisas
     Parameters:
-    useDummy (bool): usar um chatbot fake ou não;."""
+    """
 
-    def __init__(self, useDummy=True, openai_key="",brave_api_key="",TEMBO_PSQL_URL="", **kwargs):
-        super().__init__(useDummy=useDummy, openai_key=openai_key)
-        self.RAG = RAG(brave_api_key=brave_api_key, TEMBO_PSQL_URL=TEMBO_PSQL_URL,demo_search=False)
-        self.model = "gemma2-9b-it"
+    def __init__(self, main_model: LLMModelInfo | None , cheap_models:list[LLMModelInfo]=[],brave_api_key="",TEMBO_PSQL_URL="", **kwargs):
+        if not main_model: main_model= cheap_models[0]
+        super().__init__(cheap_models=cheap_models, main_model=main_model)
+        if not cheap_models: cheap_models = [main_model]
+        self.RAG = RAG(cheap_models=cheap_models, brave_api_key=brave_api_key, TEMBO_PSQL_URL=TEMBO_PSQL_URL,demo_search=False)
+
 
 
     def getSystemMessage(self, user: User):
@@ -43,13 +45,83 @@ class OpenaiInteface(MasterOpenaiInterface):
 
     async def reply(self, user:User):
         if self.openai:
-            return await self.completion_with_tool(user)
+            return await self.completion_with_tool(user) or ""
         else: 
-            return await answerDummy(user)
+            return await answerDummy(user) or ""
 
-    async def retrieve_info(self, query:str) -> list[str]:
-        """Searches a query on the internet and on the knowledge database and returns the top most relevant texts"""
-        return await self.RAG.retrieve_no_search(query)
+    async def retrieve_info(self, query: str, user : User) -> list[str]:
+        """
+        Searches for information using a two-step process:
+        1. First checks the existing database for relevant information
+        2. Only searches the internet if database results aren't sufficient
+        """
+        # First, try to get results from the database
+        db_results = await self.RAG.retrieve_no_search(query)
+        
+        # If we don't have any results, immediately use web search
+        
+        # Otherwise, evaluate the relevance of the database results
+        is_relevant = await self.evaluate_relevance(query, db_results, user)
+        
+        # If the results are not relevant, search the web
+        if not is_relevant:
+            print("RETRIEVAL: SEARCHING")
+            return await self.RAG.retrieve_with_search(query)
+        else:
+            print("RETRIEVAL: DATABASE")
+        # Return the database results if they're relevant
+        return db_results
+
+    async def evaluate_relevance(self, query: str, results: list[str], user : User) -> bool:
+        if 'groq' not in self.base_url:
+            print ("Structured output is likely to not work, as it's not a Groq hosted model")
+
+            
+        """Evaluates whether the retrieved results are relevant to the query"""
+        # Create a prompt to evaluate relevance
+        evaluation_prompt = f"""
+        QUERY: {query}
+        INFORMATION:
+        {results}
+        
+        If the information is relevant and provides helpful details about the query, it is true that it's relevant enough
+        If the information is insufficient, irrelevant, or too generic to answer the query, it's false that it's relevant enough".
+        
+        fill the json correctly, following the schema.
+        """
+        
+        messages = [
+            GptMessage(role="system", content="""You are an evaluator determining the relevance of retrieved information, that responds in json.
+            Determine if the provided information is relevant to a query enough. The JSON schema you will follow is this:
+            {
+            "query": "The query that was asked",
+            "is_relevant_enough": true or false
+            }
+            """).model_dump(),
+        ]
+
+        messages += user.dumpHistory()[:-4]
+        messages.append(GptMessage(role="user", content=evaluation_prompt).model_dump())
+        
+        for message in messages:
+            if "id" in message:
+                message.pop("id")
+
+        for i in range(2):
+            try:
+                completion = await self.openai.chat.completions.create( # type: ignore
+                    model=self.model,
+                    messages=messages, # type: ignore
+                    response_format= {'type': 'json_object'}
+                )
+                result = json.loads(completion.choices[0].message.content) # type: ignore
+                if "is_relevant_enough" in result:
+                    return result["is_relevant_enough"]
+            except Exception as e:
+                print(f"Error evaluating relevance: {e}")
+                # In case of error, assume results are not relevant to be safe
+            
+        return False
 
     async def completion(self, user: User):
         #make the retrieved info placeholder tool available to gpt, detect if it was called (the gpt is already instructured
@@ -58,9 +130,9 @@ class OpenaiInteface(MasterOpenaiInterface):
         messages=self.getSystemMessage(user) + user.dumpHistory()
 
         [m.pop("id") for m in messages]
-        completion = await self.openai.chat.completions.create(
+        completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
-            messages=messages
+            messages=messages #type: ignore
         )
         return completion.choices[0].message.content
     
@@ -91,10 +163,10 @@ class OpenaiInteface(MasterOpenaiInterface):
         [m.pop("id") for m in messages]
         
         # First call with tool definition
-        completion = await self.openai.chat.completions.create(
+        completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
-            messages=messages,
-            tools=tools,
+            messages=messages, #type: ignore
+            tools=tools, #type: ignore
             tool_choice="auto"
         )
         
@@ -112,20 +184,20 @@ class OpenaiInteface(MasterOpenaiInterface):
                     query = function_args.get("query")
                     
                     # Call retrieve_info with the query
-                    info_results = await self.retrieve_info(query)
+                    info_results = await self.retrieve_info(query, user)
                     
                     # Add tool response to messages
                     tool_messages.append({
-                        "tool_call_id": tool_call.id,
-                        "role": "tool",
-                        "name": "retrieve_info",
-                        "content": str(info_results)
+                        "tool_call_id": tool_call.id, #type: ignore
+                        "role": "tool", #type: ignore
+                        "name": "retrieve_info", #type: ignore
+                        "content": str(info_results) #type: ignore
                     })
             
             # Second call with the tool results
-            second_completion = await self.openai.chat.completions.create(
+            second_completion = await self.openai.chat.completions.create( #type: ignore
                 model=self.model,
-                messages=messages + tool_messages
+                messages=messages + tool_messages  #type: ignore
             )
             
             return second_completion.choices[0].message.content

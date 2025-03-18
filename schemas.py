@@ -37,33 +37,48 @@ class DB_Site(BaseModel):
 
 from openai import AsyncOpenAI
 
+class LLMModelInfo(BaseModel):
+    url: str
+    model: str
+    rate_limit: int
+    key:str
 
 class MasterOpenaiInterface:
-    def __init__(self, useDummy=True, openai_key="", **kwargs):
-        self.openai = None
-        self.__openai_key__ = openai_key
-        useDummy = useDummy or not openai_key
-        if (useDummy):
-            #nao usar o chatgpt de verdade
-            self.openai = None
+    def __init__(self, main_model: LLMModelInfo | None = None, cheap_models: list[ LLMModelInfo] = [], **kwargs):
+        self.openai: AsyncOpenAI | None = None
+        self.cheap_models=cheap_models
+
+        if main_model:
+            self.switch_to_model(main_model)
+            self.main_model = main_model
         else:
-            self.openai = AsyncOpenAI(
-                base_url="https://api.groq.com/openai/v1",
-                api_key=self.__openai_key__
-            )
+            self.main_model = cheap_models[0]
+            self.switch_to_model(cheap_models[0])
 
-        self.model='llama3-8b-8192'
-        self.rate_limit = 8000
-        
 
+    def switch_to_model(self, model: LLMModelInfo):
+        """Start using another LLM model from now on"""
+        self.model = model.model
+        self.rate_limit = model.rate_limit
+        self.base_url = model.url 
+        self.openai = AsyncOpenAI(
+            base_url=model.url,
+            api_key=model.key
+        )        
 
 class DB_Document(BaseModel):
     content: str
     site_id: int
     id: int = 0
 
-class LLMModelInfo(BaseModel):
+class SearchItem(BaseModel):
+    title: str
     url: str
-    model: str
-    rate_limit: str
-    key:str
+    is_source_local: bool
+    is_source_both: bool
+    description: str = ""
+    page_age: str = ""
+    page_fetched: str = ""
+    profile: dict = {}
+    language: str = ""
+    family_friendly: bool = False
