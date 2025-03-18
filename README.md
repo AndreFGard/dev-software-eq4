@@ -50,7 +50,11 @@ Para preparar o ambiente de desenvolvimento no Linux, MacOS, BSD ou outros siste
 git clone https://github.com/AndreFGard/dev-software-eq4
 cd dev-software-eq4
 bash install_tools.sh
+playwright install-deps
+palywright install
 ```
+
+> O playwright, uma dependência do crawling do sistema, oferece suporte muito limitado a distribuições que não o Ubuntu. [Este issue](https://github.com/microsoft/playwright/issues/2621#issuecomment-2083083392) descreve como resolver esse problema no Archlinux
 
 ###
 
