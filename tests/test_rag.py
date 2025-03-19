@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pytest
 import asyncio
 import os
@@ -11,9 +15,6 @@ from schemas import *
 
 pytest_plugins = 'pytest_asyncio'
 from pydantic import BaseModel
-
-
-
 
 @pytest.fixture
 def mock_rag():

@@ -1,6 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pytest
 import asyncio
-import os
 from unittest.mock import patch, MagicMock, AsyncMock
 from rag.rag import SlidingWindowChunking, crawl4ai_crawl_many, CrawlResult, DB_Site, RAG
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
