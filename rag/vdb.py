@@ -7,6 +7,7 @@ from schemas import *
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import TEXT, text
 class VecDb:
+    """This class provides a database interface for the vector database, which allows semantic search"""
     def __init__(self, TEMBO_PSQL_URL:str ):
         self.TEMBO_PSQL_URL = TEMBO_PSQL_URL
         self.url = self.TEMBO_PSQL_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
@@ -28,7 +29,8 @@ class VecDb:
     
     
     async def insert_sites_n_chunks(self, sites: list[DB_Site]):
-        """returns site id"""
+        """Inserts sites and their chunks into the vector database"""
+
         id = 0
         dumped = [site.model_dump() for site in sites]
         #todo use ORM to be able to batch insert

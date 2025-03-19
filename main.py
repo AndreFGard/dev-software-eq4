@@ -41,11 +41,12 @@ main_model = LLMModelInfo(url="https://api.groq.com/openai/v1",
                 key=settings.OPENAI_KEY) if settings.OPENAI_KEY else None
 
 users = m.user_list
-openai = m.OpenaiInteface(
-                            main_model=main_model,
-                            cheap_models=settings.HIGH_LIMIT_MODELS,
-                            brave_api_key=settings.BRAVE_KEY,
-                            TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
+openai = m.userOpenai(
+                    main_model=main_model,
+                    cheap_models=settings.HIGH_LIMIT_MODELS,
+                    brave_api_key=settings.BRAVE_KEY,
+                    TEMBO_PSQL_URL=settings.TEMBO_PSQL_URL)
+
 @app.on_event("startup")
 async def startup_event():
     await openai.RAG.db._create_tables()
@@ -58,11 +59,11 @@ messagesyet=[]
 
 @app.post("/addMessage")
 @app.post("/addData")
-async def addData(msg: m.Message):
+async def addMessage(msg: m.Message):
     """Recebe uma mensagem nova, determina o usuario, pega a resposta 
-    de uma IA e adiciona no historico de mensagens
+    de uma IA, adiciona no historico de mensagens
     e retorna o historico de mensagens"""
-    #preencher aqui
+
     if (msg.username not in m.user_list):
         user = m.User(msg.username)
         m.user_list[msg.username] = user
@@ -73,6 +74,8 @@ async def addData(msg: m.Message):
     user.addMessage(m.Message(username="assistant", content=reply ))
     messages =user.getMessageHistory()
     return messages
+
+addData = addMessage 
 
 @app.get("/getMessages", response_model=List[m.Message])
 async def getMessages(username:str) -> List[m.Message]:
@@ -86,12 +89,16 @@ async def getMessages(username:str) -> List[m.Message]:
 
 @app.post('/addToFavorites', response_model=List[m.Message])
 async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):
+    """Adiciona uma mensagem aos favoritos de um usuário"""
+
     if username not in m.favorite_messages: m.favorite_messages[username] = {msg.id: msg}
     else: m.favorite_messages[username][msg.id] = msg
     return list(m.favorite_messages[username].values())
 
 @app.post('/removeFavorite', response_model=List[m.Message])
 async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...)):
+    """Remove uma mensagem dos favoritos de um usuário"""
+    
     if username in m.favorite_messages and msg.id in m.favorite_messages[username]:
         del m.favorite_messages[username][msg.id]
     return list(m.favorite_messages[username].values())
@@ -99,6 +106,8 @@ async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...))
 
 @app.get('/getFavorites', response_model=List[m.Message])
 async def getFavorites(username: str):
+    """Retorna as mensagens favoritas de um usuário"""
+
     if username not in m.favorite_messages: return []
     return list(m.favorite_messages[username].values())
 
