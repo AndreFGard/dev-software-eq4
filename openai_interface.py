@@ -23,7 +23,8 @@ async def answerDummy(*args, **kwargs):
 
 
 
-from rag import RAGOpenai,RAG
+from rag.rag import RAG
+from rag.rag_openai import RAGOpenai
 
 class OpenaiInteface(MasterOpenaiInterface):
     """Essa classe proverÁ (quando isso for implementado) 
