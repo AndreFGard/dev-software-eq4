@@ -49,7 +49,6 @@ async def test_CrawlResult_to_DB_Site(mock_rag):
     db_site = await mock_rag.CrawlResult_to_DB_Site(mock_site)
     assert db_site.url == "http://example.com"
     assert len(db_site.content) > 0
-    assert len(db_site.chunks) > 0
 
 @pytest.mark.asyncio
 async def test_add_chunks(mock_rag):

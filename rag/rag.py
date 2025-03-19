@@ -74,15 +74,17 @@ class RAG:
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
         """
+        
+        #apply pruning filter to get rid of useless content such as tags
         oldmd = str(crawler_config.markdown_generator.generate_markdown(str(site.cleaned_html)).fit_markdown or site.markdown)
         md = oldmd
         if isinstance(self.llm.rate_limit, int) and (len(oldmd) < self.llm.rate_limit) and self.llm.openai:
             md = await self.llm.summarize(oldmd)
-            print(f'RPUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(site.markdown)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
+            print(f'PRUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(site.markdown)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
         else:
             print("ERROR SUMMARIZING: TOO LONG")
         
-        chunks = [chnk for chnk in self.chunker.chunk(str(md)) if len(chnk)]
+        chunks = [chnk for chnk in self.chunker.chunk(str(md)) if len(chnk) > 1]
         title = (site.metadata or {}).get('title') or site.url
 
         return DB_Site(url=site.url,
@@ -93,24 +95,29 @@ class RAG:
 
 
     async def add_chunks(self, sites: list[CrawlResult]) -> list[DB_Site]:
-        """do topic segmentation/chunking"""
+        """separate text in chunks"""
         start = time.time()
         results = await asyncio.gather(*[self.CrawlResult_to_DB_Site(site) for site in sites])
         print(f"CHUNKING and summarizing: {time.time()-start:.3f}")
         return results
     
     async def search_store(self, query):
+        """Search on the web, crawl and store the results and their chunks in the database"""
         results = [site for site in await self.search_and_crawl(query) if site.success]
         results = [res for res in await self.add_chunks(results) if (res.chunks and res.url and res.title)]
         return await self.db.insert_sites_n_chunks(results)
     
     async def retrieve_no_search(self, query) -> list[str]:
+        """search on the database without searching the web"""
+
         start = time.time()
         x = await self.db.retrieve_no_search(query)
         print(f"RETRIEVAL: {time.time()-start:.3f}")
         return x
     
     async def retrieve_with_search(self, query) -> list[str]:
+        """search on the web and the database"""
+        
         await self.search_store(query)
         return await self.db.retrieve_no_search(query)
 

@@ -1,6 +1,7 @@
 from schemas import *
 from .chunker import SlidingWindowChunking
 class RAGOpenai(MasterOpenaiInterface):
+    """Provides LLM utilities for RAG purposes"""
     def __init__(self, cheap_models:list[LLMModelInfo]):
             super().__init__(cheap_models=cheap_models)
             print(f"RAG: using {self.model}")
@@ -10,7 +11,8 @@ class RAGOpenai(MasterOpenaiInterface):
               \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
             self.chunker = SlidingWindowChunking(window_size=self.rate_limit//2, step=90)
 
-    async def __summarize_req(self, piece:str):
+    async def __summarize_req(self, piece:str) -> str:
+        """Summarize piece of text, using a cheap/HIGH LIMIT model such as gemini"""
         messages=[
             GptMessage(role="system", 
                 content=self.summarize_prompt).model_dump(),
@@ -26,9 +28,10 @@ class RAGOpenai(MasterOpenaiInterface):
             messages=messages #type: ignore
         ) 
 
-        return completion.choices[0].message.content
+        return completion.choices[0].message.content or ""
 
     async def summarize(self, text: str, manage_limits=False)-> str:
+        """chunkarize and summarize text"""
         pieces : list[str] = [text]
         n_reqs = 1
         if manage_limits:
