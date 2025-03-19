@@ -26,7 +26,7 @@ async def answerDummy(*args, **kwargs):
 from rag.rag import RAG
 from rag.rag_openai import RAGOpenai
 
-class OpenaiInteface(MasterOpenaiInterface):
+class userOpenai(MasterOpenaiInterface):
     """Essa classe proverÁ (quando isso for implementado) 
     as respostas de um chatbot.
     Essa classe deve preparar os parametros, prompts e outras coisas
