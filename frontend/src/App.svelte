@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "./app.css";
   import svelteLogo from './assets/svelte.svg'
   import viteLogo from '/vite.svg'
   import Counter from './Counter.svelte'
@@ -9,16 +10,16 @@
   let favorites: Message[] = [];
   let error: string;
   import Sidebar from './components/Sidebar.svelte';
-
+  
   import { removeFromFavoritesBack } from './api';
-
+  
   let messages = [
     { username: 'assistant', content: 'Hello! Im GPT.' },
     { username: 'User', content: "Can you help me?" }
   ];
   let username = 'User';
   let message = '';
-
+  
   onMount(async () => {
     try {
       messages = await getMessages(username);
@@ -27,7 +28,7 @@
       error = e.message || e;
     }
   });
-
+  
   // Conferir se a mensagem está vazia
   async function handleAdd() {
     if (!message.trim()) {
@@ -41,16 +42,15 @@
       console.error(e);
     }
   }
-
+  
   export async function addToFavorites(msg: Message) {
     favorites = await addToFavoritesBack(username, msg);
   }
-
+  
   async function removeFromFavorites(msg: Message) {
   favorites = favorites.filter(fav => fav.content !== msg.content); // Remove localmente
   await removeFromFavoritesBack(username, msg); // Remove no backend
-}
-
+  }
 </script>
 
 <main class="section">
