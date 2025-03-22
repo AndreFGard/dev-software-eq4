@@ -91,7 +91,7 @@ class ActivityDetail(BaseModel):
     name: str
     duration: str
     description: str
-    notes: str | None = None
+    explanations: str | None = None
 
 class DayDetail(BaseModel):
     day: int

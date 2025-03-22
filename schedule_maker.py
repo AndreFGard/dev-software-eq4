@@ -52,6 +52,7 @@ class ScheduleMaker(MasterOpenaiInterface):
 Create a travel cronogram as a JSON object with this structure:
 {{
   "title": "string",
+  "explanations": "string (optional)"
   "days": [
     {{
       "day": "number",
@@ -66,7 +67,7 @@ Create a travel cronogram as a JSON object with this structure:
       ]
     }}
   ],
-  "notes": "string (optional)"
+  
 }}
 
 The cronogram should logically organize activities, respecting timing and travel constraints.
