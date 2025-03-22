@@ -192,9 +192,9 @@ class userOpenai(MasterOpenaiInterface):
                     # Add tool response to messages
                     tool_messages.append({
                         "tool_call_id": tool_call.id, #type: ignore
-                        "role": "tool", #type: ignore
-                        "name": "retrieve_info", #type: ignore
-                        "content": str(info_results) #type: ignore
+                        "role": "tool", 
+                        "name": "retrieve_info", 
+                        "content": str(info_results)
                     })
             
             # Second call with the tool results
