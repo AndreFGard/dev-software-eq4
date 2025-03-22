@@ -24,7 +24,7 @@ class ScheduleMaker(MasterOpenaiInterface):
             Your output must be a valid JSON object with the structure specified in the user's request."""
         }
     
-    async def create_cronogram(self, user: User, activities: list[Message]) -> Schedule:
+    async def create_cronogram(self, user: User, activities: list[Activity]) -> Schedule:
         """
         Creates a structured travel cronogram based on the user's conversation history
         and selected activities.
@@ -43,7 +43,7 @@ class ScheduleMaker(MasterOpenaiInterface):
         #     for a in activities
         # ])
 
-        activities_text = "\n".join([act.content for act in activities]) #type: ignore
+        activities_text = "\n-----------\n".join([f"{act.name.capitalize()}:\n{act.long_description}" for act in activities]) 
         # Prepare the prompt with the structure definition
         user_prompt = f"""Based on the conversation history and these activities:
 
