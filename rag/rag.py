@@ -69,7 +69,7 @@ class RAG:
         print(f"CRAWL: {time.time()-start:.3f}")
         return results
     
-    async def CrawlResult_to_DB_Site(self, site: CrawlResult, crawler_config=crawler_config) -> DB_Site:
+    async def CrawlResult_to_DB_Site(self, site: CrawlResult, crawler_config=crawler_config) -> DB_Site | None:
         """
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
@@ -83,6 +83,7 @@ class RAG:
             print(f'PRUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(site.markdown)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
         else:
             print("ERROR SUMMARIZING: TOO LONG")
+            return None
         
         chunks = [chnk for chnk in self.chunker.chunk(str(md)) if len(chnk) > 1]
         title = (site.metadata or {}).get('title') or site.url
@@ -99,7 +100,7 @@ class RAG:
         start = time.time()
         results = await asyncio.gather(*[self.CrawlResult_to_DB_Site(site) for site in sites])
         print(f"CHUNKING and summarizing: {time.time()-start:.3f}")
-        return results
+        return [site for site in results if site]
     
     async def search_store(self, query):
         """Search on the web, crawl and store the results and their chunks in the database"""
