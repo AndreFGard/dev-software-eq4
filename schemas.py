@@ -82,3 +82,22 @@ class SearchItem(BaseModel):
     profile: dict = {}
     language: str = ""
     family_friendly: bool = False
+
+
+
+
+class ActivityDetail(BaseModel):
+    time: str
+    name: str
+    duration: str
+    description: str
+    explanations: str | None = None
+
+class DayDetail(BaseModel):
+    day: int
+    activities: list[ActivityDetail]
+
+class Schedule(BaseModel):
+    title: str
+    days: list[DayDetail]
+    notes: str | None = None
