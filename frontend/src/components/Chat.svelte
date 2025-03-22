@@ -1,194 +1,175 @@
-
-
-<script lang="ts"> //indica que o código dentro dessa tag está em TypeScript
+<script lang="ts">
 	export let addToFavorites: (msg: { username: string; content: string }) => void;
-  	import { apiUrl } from "../api";
-	//exporta as variáveis que serão usadas fora do componente Svelte
 	import type { Message } from "../api";
-	import {marked} from 'marked';
-	export let messages: Message[] = []; //Lista de mensagens exibidas no chat
-	export let message = "Hello sir"; //Mensagem inicial de exemplo
-	export let handleAdd: () => void; //Função que será chamada ao clicar no botão de enviar mensagem
+	import { marked } from "marked";
+	export let messages: Message[] = [];
+	export let message = "";
+	export let handleAdd: () => void;
 	
 	let isLoading = false;
 	async function handleSend() {
-		isLoading = true;
-		
-		await handleAdd();
-		isLoading = false;
-	}
-
-	 function renderMarkdown(content: string) {
-		return  marked(content);
+	  isLoading = true;
+	  await handleAdd();
+	  isLoading = false;
 	}
 	
-</script>
-
-<style>
-	/* Definição das cores mais usadas */
-	:root{
-		--primary-color: rgb(163, 201, 241); 
-		--secondary-color: rgb(191, 226, 245);
-		--text-color: rgb(47, 49, 91);
-		--button-text-color: rgb(47, 49, 91);
-		--button-active: rgb(117, 169, 198);
-		--black: rgba(0, 0, 0, 0.1);
-		--white: rgb(255, 255, 255);
-
-	/*Cores exatas do emoji de avião*/
-		--cor-1: rgb(0, 132, 206);
-		--cor-2: rgb(205, 196, 214);
-		--cor-3: rgb(0, 166, 237);
-		--cor-4: rgb(155, 155, 155);
-  	}
-
-	/* Estilo para a caixa principal */
-	/* No seu código de estilo de .box para a caixa de favoritos */
+	function renderMarkdown(content: string) {
+	  return marked(content);
+	}
+  </script>
+  
+  <style>
+	:root {
+	  --primary-color: rgb(163, 201, 241); 
+	  --secondary-color: rgb(191, 226, 245);
+	  --text-color: rgb(47, 49, 91);
+	  --button-text-color: rgb(47, 49, 91);
+	  --button-active: rgb(117, 169, 198);
+	  --black: rgba(0, 0, 0, 0.1);
+	  --white: rgb(255, 255, 255);
+	}
+  
 	.box {
-		background-color: var(--primary-color);
-		box-shadow: 0 4px 1px var(--black);
-		color: var(--white);
-		padding: 35px;
-		height: 78vh;
-		border-radius: 25px;
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-end;
-		margin-bottom: 20px; /* Adiciona o espaçamento abaixo do box de favoritos */
+	  background-color: var(--primary-color);
+	  box-shadow: 0 4px 1px var(--black);
+	  color: var(--white);
+	  padding: 25px;
+	  height: 100%;
+	  width: 66%;
+	  border-radius: 25px;
+	  display: flex;
+	  flex-direction: column;
+	  overflow: hidden;
+	  position: relative;
 	}
-
-	h3{
-        margin-top: -10px; /* Ajuste a distância do topo */
-        margin-bottom: 10px; /* Ajuste a distância abaixo do título */
-        font-size: 1.1rem; /* Tamanho da fonte */
-    }
-
-	/* Estilo para os itens de mensagem (caixas internas) */
+  
+	.app-title {
+	  color: rgb(39, 121, 168);
+	  font-size: 1.8rem;
+	  margin: 0 0 25px 0;
+	  padding-bottom: 10px;
+	  border-bottom: 2px solid var(--secondary-color);
+	  margin-bottom: 15px;
+	}
+  
 	.message-box {
-		background-color: var(--secondary-color); /*cor das caixas menores*/
-		color: var(--text-color); /*Cor do texto*/
-		padding: 1.1rem; /*Tamanho das caixas menores*/
-		border-radius: 15px; /*Arredondamento das caixas internas*/
-		max-width: 85%; /* Define a largura máxima da mensagem em relação à caixa principal */
-		word-wrap: break-word; /* Garante que palavras longas sejam quebradas */
-    	word-break: break-word; /* Compatibilidade adicional com navegadores antigos */
+	  background-color: var(--secondary-color);
+	  color: var(--text-color);
+	  padding: 1.1rem;
+	  border-radius: 15px;
+	  max-width: 80%;
+	  min-width: 30%;
+	  word-wrap: break-word;
+	  word-break: break-word;
 	}
-
+  
 	.message-box.left {
-		align-self: flex-start; /* Alinha mensagens do lado esquerdo */
-		background-color: var(--white); /* Cor da mensagem da GPT */
+	  align-self: flex-start;
+	  background-color: var(--white);
 	}
-
+  
 	.message-box.right {
-		align-self: flex-end; /* Alinha mensagens do lado direito */
-		background-color: var(--secondary-color); /* Cor da mensagem do usuário */
-		color: var(--text-color); /* Cor do texto da mensagem do usuário */
+	  align-self: flex-end;
+	  background-color: var(--secondary-color);
+	  color: var(--text-color);
 	}
-
-	.message-box.activity {
-		font-style: italic; /* Estilo de fonte itálico para mensagens de atividade */
-	}
-	/* Caixa de entrada de texto e botão */
+  
 	.input, 
 	.button {
-		background-color: var(--white); /*Cor do botão*/
-   		color: var(--button-text-color); /*cor do texto nos botões*/
-		box-shadow: 0 4px 1px var(--black); /*Sombras das caixas*/
-		margin-top: 5px; /*Distância das mensagens já enviadas*/
-		border-radius: 10px; /*Arredondamento das bordas*/
+	  background-color: var(--white);
+	  color: var(--button-text-color);
+	  box-shadow: 0 4px 1px var(--black);
+	  margin-top: 5px;
+	  border-radius: 10px;
+	  flex: 0 0 auto;
+	  padding: 0 20px;
 	}
-
-	/* Para as mensagens (box internos) não ultrapassarem a largura da caixa maior */
+  
 	.messages-list {
-		display: flex;
-		flex-direction: column; /* Empilha as mensagens verticalmente */
-		align-items: flex-start; /* Por padrão, mensagens começam alinhadas à esquerda */
-		max-height: 75vh; /* Altura máxima da lista de mensagens */
-		overflow-y: auto; /* Adiciona barra de rolagem se necessário */
-		gap: 10px; /* Espaçamento entre as mensagens */
-		flex-grow: 1;
-		padding-right: 25px;
+	  display: flex;
+	  flex-direction: column;
+	  align-items: flex-start;
+	  height: calc(100% - 120px);
+	  overflow-y: auto;
+	  gap: 10px;
+	  flex-grow: 1;
+	  margin-bottom: 15px;
 	}
-
-	/* Estilização das barras de rolagem */
+  
 	.messages-list::-webkit-scrollbar {
-		width: 10px; /* Largura da barra */
-		
+	  width: 10px;
 	}
-
+  
 	.messages-list::-webkit-scrollbar-thumb {
-		background-color: var(--secondary-color); /* Cor da barra de rolagem */
-		border-radius: 10px; /* Arredondamento */
-		border: 3px solid transparent; /* Espaço entre a barra e o conteúdo */
+	  background-color: var(--secondary-color);
+	  border-radius: 10px;
+	  border: 3px solid transparent;
 	}
-
+  
 	.messages-list::-webkit-scrollbar-track {
-		background-color: rgba(0, 0, 0, 0.05); /* Cor do track */
+	  background-color: rgba(0, 0, 0, 0.05);
 	}
-
-	/*Efeito no botão*/
+  
 	.button:hover {
-		background-color: var(--secondary-color); /*Muda a cor do botão quando selecionado*/
+	  background-color: var(--secondary-color);
 	}
-	/* Foco no botão */
-	.button:active{
-		outline: 7px solid var(--button-active); /* Indicador visual ao focar no botão */
+  
+	.button:active {
+	  outline: 7px solid var(--button-active);
 	}
-
-	/* Estilo do input de mensagem */
+  
 	.input {
-		margin-right: 8px; /*Espaço entre o input e o botão */
+	  flex: 1;
+	  min-width: 0;
 	}
-	
-	/*Alinhamento da entrada de texto e botão*/
+  
 	.field {
-		display: flex; /* Organiza os elementos horizontalmente */
-    	align-items: center; /* Alinha os itens ao centro verticalmente */
-    	justify-content: space-between; /* Espaço entre o input e o botão */
-    	width: 100%; /* Garante que o campo de entrada e o botão ocupem toda a largura */
+	  display: flex;
+	  gap: 8px;
+	  align-items: center;
+	  position: sticky;
+	  bottom: 0;
+	  background: var(--primary-color);
+	  padding: 10px 0;
+	  margin-top: auto;
 	}
-
+  
 	.message-box strong {
-		color: rgb(19, 82, 119);
-		font-weight: bold;
+	  color: rgb(19, 82, 119);
+	  font-weight: bold;
 	}
-
+  
 	.favorite-button {
-		height: 25px; /* Ajuste conforme necessário */
-		padding: 5px 12px; /* Ajuste para melhor espaçamento */
-		font-size: 12px;
+	  height: 25px;
+	  padding: 5px 12px;
+	  font-size: 12px;
 	}
-	
-</style>
-
-<!--Estrutura HTML principal-->
-<div class="box"> 
-	
+  </style>
+  
+  <div class="box"> 
+	<h2 class="app-title">Mape.ia</h2>
 	<ul class="messages-list">
-		{#each messages as msg}
-			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'} {msg.is_activity ? 'activity' : ''}">
-				<strong>{msg.username}:</strong> 
-				<button
-				class="button is-small is-primary favorite-button"
-				on:click={() => addToFavorites(msg)}
-			  	>
-				Add to Favorites
-			  	</button>
-			  
-				{@html renderMarkdown(msg.content)}
-			</li>
-		{/each}
+	  {#each messages as msg}
+		<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
+		  <strong>{msg.username}:</strong> 
+		  <button
+			class="button is-small is-primary favorite-button"
+			on:click={() => addToFavorites(msg)}
+		  >
+			Add to Favorites
+		  </button>
+		  {@html renderMarkdown(msg.content)}
+		</li>
+	  {/each}
 	</ul>
-
+  
 	<div class="field {isLoading ? 'placeholder' : ''}">
-		<input
-			class="input"
-			type="text"
-			placeholder="Type your message"
-			bind:value={message}
-		/>
-		<button class="button {isLoading ? 'is-loading' : ''}" on:click={handleSend}>Send</button>
+	  <input
+		class="input"
+		type="text"
+		placeholder="Type your message"
+		bind:value={message}
+	  />
+	  <button class="button {isLoading ? 'is-loading' : ''}" on:click={handleSend}>Send</button>
 	</div>
-</div>
-
+  </div>
