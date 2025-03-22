@@ -56,10 +56,24 @@
 
 <style>
 
+:root {
+    --primary-color: rgb(163, 201, 241); 
+    --secondary-color: rgb(191, 226, 245);
+    --text-color: rgb(47, 49, 91);
+    --button-text-color: rgb(47, 49, 91);
+    --button-active: rgb(117, 169, 198);
+    --black: rgba(0, 0, 0, 0.1);
+    --white: rgb(255, 255, 255);
+    --accent-color: rgb(39, 121, 168);
+    --background-color: rgb(245, 245, 245);
+    --border-radius: 15px;
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
 #chat-cont {
     height: 100vh;
     padding: 20px;
-    background: rgb(245, 245, 245);
+    background: var(--background-color);
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -69,7 +83,7 @@
     display: flex;
     height: 100%;
     width: 100%; 
-    gap: 15px;
+    gap: 20px;
   }
 
   .sidebar {

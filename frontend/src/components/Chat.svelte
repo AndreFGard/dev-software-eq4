@@ -12,26 +12,25 @@
 	  await handleAdd();
 	  isLoading = false;
 	}
-	
 	function renderMarkdown(content: string) {
 	  return marked(content);
 	}
-  </script>
-  
+</script>
   <style>
 	:root {
-	  --primary-color: rgb(163, 201, 241); 
+		--primary-color: rgb(163, 201, 241); 
 	  --secondary-color: rgb(191, 226, 245);
 	  --text-color: rgb(47, 49, 91);
 	  --button-text-color: rgb(47, 49, 91);
 	  --button-active: rgb(117, 169, 198);
 	  --black: rgba(0, 0, 0, 0.1);
 	  --white: rgb(255, 255, 255);
+	  --accent-color: rgb(39, 121, 168);
 	}
   
 	.box {
 	  background-color: var(--primary-color);
-	  box-shadow: 0 4px 1px var(--black);
+	  box-shadow: 0 4px 10px var(--black);
 	  color: var(--white);
 	  padding: 25px;
 	  height: 100%;
@@ -44,12 +43,15 @@
 	}
   
 	.app-title {
-	  color: rgb(39, 121, 168);
-	  font-size: 1.8rem;
-	  margin: 0 0 25px 0;
+	  color: var(--accent-color);
+	  font-size: 2.2rem; /* Aumentar o tamanho da fonte */
+	  margin-top:-15px ;
 	  padding-bottom: 10px;
 	  border-bottom: 2px solid var(--secondary-color);
 	  margin-bottom: 15px;
+	  display: flex;
+	  align-items: center;
+	  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2); /* Adicionar sombra */
 	}
   
 	.message-box {
@@ -78,11 +80,9 @@
 	.button {
 	  background-color: var(--white);
 	  color: var(--button-text-color);
-	  box-shadow: 0 4px 1px var(--black);
-	  margin-top: 5px;
-	  border-radius: 10px;
-	  flex: 0 0 auto;
-	  padding: 0 20px;
+	  box-shadow: 3px 3px 3px var(--black);
+	  border-radius: 15px;
+	  padding: 20px;
 	}
   
 	.messages-list {
@@ -91,7 +91,7 @@
 	  align-items: flex-start;
 	  height: calc(100% - 120px);
 	  overflow-y: auto;
-	  gap: 10px;
+	  gap: 15px;
 	  flex-grow: 1;
 	  margin-bottom: 15px;
 	}
@@ -111,11 +111,11 @@
 	}
   
 	.button:hover {
-	  background-color: var(--secondary-color);
+	  background-color: var(--button-active);
 	}
   
 	.button:active {
-	  outline: 7px solid var(--button-active);
+	  outline: 4px solid var(--button-active);
 	}
   
 	.input {
@@ -135,28 +135,31 @@
 	}
   
 	.message-box strong {
-	  color: rgb(19, 82, 119);
+	  color: var(--accent-color);
 	  font-weight: bold;
+	  margin-right: 5px;
 	}
   
 	.favorite-button {
-	  height: 25px;
-	  padding: 5px 12px;
+	  padding: 12px;
 	  font-size: 12px;
+	  background-color: var(--accent-color);
+	  color: var(--white);
+	  border-radius: 15px;
+	  cursor: pointer;
 	}
+
   </style>
   
   <div class="box"> 
-	<h2 class="app-title">Mape.ia</h2>
+	<h2 class="app-title">Mape.ia✈️ </h2>
 	<ul class="messages-list">
 	  {#each messages as msg}
 		<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
 		  <strong>{msg.username}:</strong> 
 		  <button
-			class="button is-small is-primary favorite-button"
-			on:click={() => addToFavorites(msg)}
-		  >
-			Add to Favorites
+			class="button is-primary favorite-button"
+			on:click={() => addToFavorites(msg)}>Add to Favorites
 		  </button>
 		  {@html renderMarkdown(msg.content)}
 		</li>

@@ -1,14 +1,13 @@
 <script lang="ts">
-  export let favorites = []; // Recebe a lista de favoritos do componente pai
+  export let favorites = [];
   export let removeFromFavorites: (msg: { username: string; content: string }) => void; // Função para remover favoritos
 </script>
 
 <div class="box">
-  <h3 class="favorites-title">Favorites</h3>
+  <h3 class="favorites-title">Favorites:</h3>
   <ul class="favorite-list">
     {#each favorites as msg}
       <li class="message-box">
-        <!-- Botão de remover com posicionamento absoluto -->
         <button class="remove-button" on:click={() => removeFromFavorites(msg)}>✖</button>
         <strong>{msg.username}:</strong> {@html msg.content}
       </li>
@@ -19,7 +18,7 @@
 <style>
   .favorite-list {
     list-style-type: none;
-    padding: 10px 0; /* Correção do erro de digitação */
+    padding: 10px 0; 
     max-height: calc(100vh - 150px);
     overflow-y: auto;
     display: flex;
