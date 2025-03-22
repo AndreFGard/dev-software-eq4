@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,7 +14,7 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 
-from schemas import LLMModelInfo
+from schemas import LLMModelInfo, Schedule
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''
@@ -110,6 +110,16 @@ async def getFavorites(username: str):
 
     if username not in m.favorite_messages: return []
     return list(m.favorite_messages[username].values())
+
+@app.post('/makeSchedule', response_model=Schedule)
+async def makeSchedule(username: str = Body(...)):
+    try:
+        sched = await openai.make_schedule(m.user_list[username], m.favorite_messages[username].values())
+        return sched
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Failed to generate schedule")
+
 
 if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html=True), name="static")
