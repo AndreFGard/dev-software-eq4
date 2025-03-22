@@ -3,8 +3,7 @@ export const apiUrl= import.meta.env.VITE_API_URL
 export interface Message{
     username: string;
     content:string;
-    is_activity?:boolean;
-    id?:Number;
+    id?:Number ;
 }
 
 
@@ -52,7 +51,7 @@ export async function getFavorites(username: string): Promise<Message[]>{
     return response.json()
 }
 
-export async function removeFromFavoritesBack(username, msg) {
+export async function removeFromFavoritesBack(username: string, msg:Message) {
     console.log("Chamando API", username, msg);
     await fetch(`${apiUrl}/removeFavorite`, {
       method: "POST",
