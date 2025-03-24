@@ -2,6 +2,7 @@
 	export let addToFavorites: (msg: { username: string; content: string }) => void;
 	import type { Message } from "../api";
 	import { marked } from "marked";
+	import Login from './Login.svelte';
 	export let messages: Message[] = [];
 	export let message = "";
 	export let handleAdd: () => void;
@@ -18,7 +19,7 @@
 </script>
   <style>
 	:root {
-		--primary-color: rgb(163, 201, 241); 
+	  --primary-color: rgb(163, 201, 241); 
 	  --secondary-color: rgb(191, 226, 245);
 	  --text-color: rgb(47, 49, 91);
 	  --button-text-color: rgb(47, 49, 91);
@@ -27,7 +28,33 @@
 	  --white: rgb(255, 255, 255);
 	  --accent-color: rgb(39, 121, 168);
 	}
-  
+
+.header-wrapper {
+	width: 100%;
+	position: relative;
+	margin-bottom: 15px;
+	padding-bottom: 14px;
+	border-bottom: 2px solid var(--secondary-color);
+}
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; 
+    width: 100%;
+  }
+
+  .app-title {
+    color: var(--accent-color);
+    font-size: 2.2rem;
+    margin: 0; /* Reset de margens */
+    padding-bottom: 0;
+    display: flex;
+    align-items: center;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+    line-height: 1; /* Garante alinhamento preciso */
+  }
+
 	.box {
 	  background-color: var(--primary-color);
 	  box-shadow: 0 4px 10px var(--black);
@@ -40,18 +67,6 @@
 	  flex-direction: column;
 	  overflow: hidden;
 	  position: relative;
-	}
-  
-	.app-title {
-	  color: var(--accent-color);
-	  font-size: 2.2rem; /* Aumentar o tamanho da fonte */
-	  margin-top:-15px ;
-	  padding-bottom: 10px;
-	  border-bottom: 2px solid var(--secondary-color);
-	  margin-bottom: 15px;
-	  display: flex;
-	  align-items: center;
-	  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2); /* Adicionar sombra */
 	}
   
 	.message-box {
@@ -83,6 +98,7 @@
 	  box-shadow: 3px 3px 3px var(--black);
 	  border-radius: 15px;
 	  padding: 20px;
+	  transition: 0.3s;
 	}
   
 	.messages-list {
@@ -124,14 +140,11 @@
 	}
   
 	.field {
-	  display: flex;
-	  gap: 8px;
-	  align-items: center;
-	  position: sticky;
-	  bottom: 0;
-	  background: var(--primary-color);
-	  padding: 10px 0;
-	  margin-top: auto;
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		position: sticky;
+		background: var(--primary-color);
 	}
   
 	.message-box strong {
@@ -152,7 +165,12 @@
   </style>
   
   <div class="box"> 
-	<h2 class="app-title">Mape.ia✈️ </h2>
+	<div class="header-wrapper">
+	  <div class="header-content">
+		<h2 class="app-title">Mape.ia✈️</h2>
+		<Login />
+	  </div>
+	</div>
 	<ul class="messages-list">
 	  {#each messages as msg}
 		<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">

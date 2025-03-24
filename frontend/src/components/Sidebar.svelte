@@ -1,10 +1,18 @@
 <script lang="ts">
+  import { writable } from "svelte/store";
+  import Login from './Login.svelte'; 
   export let favorites = [];
-  export let removeFromFavorites: (msg: { username: string; content: string }) => void; // Função para remover favoritos
+  export let removeFromFavorites: (msg: { username: string; content: string }) => void; 
+  export let isExpanded = writable(false);
+
+  function toggleSidebar() {
+    isExpanded.update(value => !value);
+  }
 </script>
 
 <div class="box">
-  <h3 class="favorites-title">Favorites:</h3>
+  <button class="toggle-button" on:click={toggleSidebar}>☰</button>
+  <h2 class="favorites-title">Favorites:</h2>
   <ul class="favorite-list">
     {#each favorites as msg}
       <li class="message-box">
@@ -26,6 +34,17 @@
     gap: 10px;
     flex: 1;
   }
+  
+  .favorites-title {
+    color: var(--accent-color);
+    font-size: 1.5rem; 
+    margin-top: 6px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--secondary-color);
+    display: flex;
+    align-items: center;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+  }
 
   .box {
     background-color: rgb(163, 201, 241);
@@ -39,6 +58,7 @@
     overflow: hidden;
     flex: 1;
     max-width: 100%;
+    position: relative;
   }
 
   .favorite-list::-webkit-scrollbar {
@@ -79,10 +99,43 @@
     background-color: white;
   }
 
-  .favorites-title {
-    font-size: 1rem;
-    color: rgb(50, 58, 90);
-    font-weight: bold;
-    margin-bottom: 10px;
+  .toggle-button {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 18px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .toggle-button:hover {
+    background: var(--button-active);
+  }
+  
+  .login-register-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .button {
+    width: 100%; 
+    border-radius: 15px;
+    font-size: 1.0rem;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  @media (max-width: 768px) {
+    .button {
+      width: auto; 
+    }
   }
 </style>

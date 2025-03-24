@@ -5,6 +5,7 @@
   import type { Message } from './api.js';
   import { onMount } from 'svelte';
   import { removeFromFavoritesBack } from './api';
+  import { writable } from "svelte/store";
   
   let favorites: Message[] = [];
   let error: string;
@@ -14,6 +15,7 @@
   ];
   let username = 'User';
   let message = '';
+  let isExpanded = writable(false);
 
   onMount(async () => {
     try {
@@ -49,7 +51,7 @@
 
 <main id="chat-cont">
   <div class="content-wrapper">
-    <Sidebar {favorites} class="sidebar" removeFromFavorites={removeFromFavorites} />
+    <Sidebar {favorites} class="{isExpanded ? 'sidebar expanded' : 'sidebar collapsed'}" removeFromFavorites={removeFromFavorites} bind:isExpanded />
     <Chat {handleAdd} bind:messages={messages} bind:message={message} addToFavorites={addToFavorites} />
   </div>
 </main>
@@ -95,16 +97,19 @@
     width: 66.66%; /* Força 2/3 da tela */
     min-width: 0; /* Permite encolhimento */
   }
-
-
+  
   @media (max-width: 768px) {
-    .container {
-      max-width: 100%;
-      padding: 1rem;
-    }
     .sidebar, .chat {
       max-width: 100%;
       min-width: 100%;
+    }
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .login-register-container {
+      margin-left: 0;
+      margin-top: 10px;
     }
   }
 </style>
