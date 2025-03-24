@@ -25,7 +25,7 @@ async def answerDummy(*args, **kwargs):
 
 from rag.rag import RAG
 from rag.rag_openai import RAGOpenai
-
+from schedule_maker import ScheduleMaker
 class userOpenai(MasterOpenaiInterface):
     """Essa classe proverÁ (quando isso for implementado) 
     as respostas de um chatbot.
@@ -38,6 +38,8 @@ class userOpenai(MasterOpenaiInterface):
         super().__init__(cheap_models=cheap_models, main_model=main_model)
         if not cheap_models: cheap_models = [main_model]
         self.RAG = RAG(cheap_models=cheap_models, brave_api_key=brave_api_key, TEMBO_PSQL_URL=TEMBO_PSQL_URL,demo_search=False)
+        self.schedule_maker = ScheduleMaker(cheap_models=cheap_models)
+
 
 
 
@@ -190,9 +192,9 @@ class userOpenai(MasterOpenaiInterface):
                     # Add tool response to messages
                     tool_messages.append({
                         "tool_call_id": tool_call.id, #type: ignore
-                        "role": "tool", #type: ignore
-                        "name": "retrieve_info", #type: ignore
-                        "content": str(info_results) #type: ignore
+                        "role": "tool", 
+                        "name": "retrieve_info", 
+                        "content": str(info_results)
                     })
             
             # Second call with the tool results
@@ -205,3 +207,7 @@ class userOpenai(MasterOpenaiInterface):
         
         # If no tool was called, return the original response
         return response.content
+
+    async def make_schedule(self, user: User, activities: list[Activity]):
+        sched = await self.schedule_maker.create_cronogram(user, activities)
+        return sched

@@ -10,6 +10,7 @@ class Activity(BaseModel):
     name: str
     short_description: str
     long_description: str
+    id: int | None = None
 
 class UserStatus(Enum):
     DISCUSSING = 'discussing'
@@ -19,8 +20,10 @@ class UserStatus(Enum):
 class Message(BaseModel):
     username: str
     content: str
-    is_activity: bool = False
-    id: int = 0
+    id: int | None = None
+
+def activity_to_message(activity: Activity) -> Message:
+    return Message(username="assistant", content=f"Activity: {activity.name}\n{activity.short_description}\n{activity.long_description}", id=activity.id)
 
 from crawl4ai import CrawlResult
 class CrawlResultChunked(CrawlResult):
@@ -82,3 +85,22 @@ class SearchItem(BaseModel):
     profile: dict = {}
     language: str = ""
     family_friendly: bool = False
+
+
+
+
+class ActivityDetail(BaseModel):
+    time: str
+    name: str
+    duration: str
+    description: str
+    explanations: str | None = None
+
+class DayDetail(BaseModel):
+    day: int
+    activities: list[ActivityDetail]
+
+class Schedule(BaseModel):
+    title: str
+    days: list[DayDetail]
+    notes: str | None = None

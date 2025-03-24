@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,11 +10,13 @@ import os
 import sys
 import asyncio
 
+import user
+
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 
-from schemas import LLMModelInfo
+from schemas import LLMModelInfo, Schedule
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''
@@ -40,7 +42,6 @@ main_model = LLMModelInfo(url="https://api.groq.com/openai/v1",
                 rate_limit=8000,
                 key=settings.OPENAI_KEY) if settings.OPENAI_KEY else None
 
-users = m.user_list
 openai = m.userOpenai(
                     main_model=main_model,
                     cheap_models=settings.HIGH_LIMIT_MODELS,
@@ -55,7 +56,9 @@ async def startup_event():
 async def root():
     return "Please access index.html"
 
-messagesyet=[]
+
+from model import UserDB
+userdb = UserDB()
 
 @app.post("/addMessage")
 @app.post("/addData")
@@ -64,11 +67,8 @@ async def addMessage(msg: m.Message):
     de uma IA, adiciona no historico de mensagens
     e retorna o historico de mensagens"""
 
-    if (msg.username not in m.user_list):
-        user = m.User(msg.username)
-        m.user_list[msg.username] = user
-    else:
-        user = m.user_list[msg.username]
+    username = msg.username
+    user = userdb.getUser(username)
     user.addMessage(msg)
     reply = await openai.reply(user)
     user.addMessage(m.Message(username="assistant", content=reply ))
@@ -82,34 +82,41 @@ async def getMessages(username:str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
 
-    if username not in m.user_list.keys():
-        m.user_list[username] = m.User(username=username)
-
-    return m.user_list[username].getMessageHistory()
+    return userdb.getUser(username).getMessageHistory()
 
 @app.post('/addToFavorites', response_model=List[m.Message])
-async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)):
+async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)) -> list[m.Message]:
     """Adiciona uma mensagem aos favoritos de um usuário"""
 
-    if username not in m.favorite_messages: m.favorite_messages[username] = {msg.id: msg}
-    else: m.favorite_messages[username][msg.id] = msg
-    return list(m.favorite_messages[username].values())
+    userdb.addActivitiy(username, m.Activity(name="Act name", short_description="short description", long_description=msg.content))
+    return [m.activity_to_message(act) for act in userdb.getActivities(username)]
 
 @app.post('/removeFavorite', response_model=List[m.Message])
 async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...)):
     """Remove uma mensagem dos favoritos de um usuário"""
     
-    if username in m.favorite_messages and msg.id in m.favorite_messages[username]:
-        del m.favorite_messages[username][msg.id]
-    return list(m.favorite_messages[username].values())
+    try:
+        userdb.deleteAcitivty(username, msg.id)
+    except:
+        ...
 
+    return [m.activity_to_message(act) for act in userdb.getActivities(username)]
 
 @app.get('/getFavorites', response_model=List[m.Message])
 async def getFavorites(username: str):
     """Retorna as mensagens favoritas de um usuário"""
 
-    if username not in m.favorite_messages: return []
-    return list(m.favorite_messages[username].values())
+    return [m.activity_to_message(act) for act in userdb.getActivities(username)]
+
+@app.post('/makeSchedule', response_model=Schedule)
+async def makeSchedule(username: str = Body(...)):
+    try:
+        sched = await openai.make_schedule(userdb.getUser(username), userdb.getActivities(username))
+        return sched
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Failed to generate schedule")
+
 
 if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html=True), name="static")
