@@ -1,16 +1,24 @@
 <script lang="ts">
+  import { writable } from "svelte/store";
+  import Login from './Login.svelte'; 
   export let favorites = [];
-  export let removeFromFavorites: (msg: { username: string; content: string }) => void;
+  export let removeFromFavorites: (msg: { username: string; content: string }) => void; 
+  export let isExpanded = writable(false);
+
+  function toggleSidebar() {
+    isExpanded.update(value => !value);
+  }
 </script>
 
 <div class="box">
-  <h3 class="favorites-title">Favorites</h3>
+  <button class="toggle-button" on:click={toggleSidebar}>☰</button>
+  <h2 class="favorites-title">Favorites:</h2>
   <ul class="favorite-list">
     {#each favorites as msg}
-      <li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
+      <li class="message-box">
         <button class="remove-button" on:click={() => removeFromFavorites(msg)}>✖</button>
         <strong>{msg.username}:</strong> {@html msg.content}
-      </li>    
+      </li>
     {/each}
   </ul>
 </div>
@@ -18,47 +26,47 @@
 <style>
   .favorite-list {
     list-style-type: none;
-    padding: 1px;
-    max-height: 60vh; /* Limita a altura da lista */
-    overflow-y: auto; /* Adiciona barra de rolagem se necessário */
+    padding: 10px 0; 
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espaçamento entre as mensagens */
+    gap: 10px;
+    flex: 1;
   }
-      
-  .favorite-item {
-    word-wrap: break-word;
-    word-break: break-word;
-    color: var(--text-color);
-    max-width: 100%; /* Garante que os itens de favoritos respeitem a largura da sidebar */
-    padding: 10px; /* Ajuste de espaçamento interno */
-    margin-bottom: 5px;
-  }
-
-  /* Estilos do título de Favorites */
+  
   .favorites-title {
-    font-size: 1rem;
-    color: rgb(50, 58, 90);
-    font-weight: bold;
-    margin-bottom: 10px;
+    color: var(--accent-color);
+    font-size: 1.5rem; 
+    margin-top: 6px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--secondary-color);
+    display: flex;
+    align-items: center;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
   }
 
-  /* Estilo do box */
   .box {
-    background-color: rgb(163, 201, 241); /* Cor de fundo */
-    border-radius: 25px; /* Bordas arredondadas */
-    padding: 20px;
-    width: 300px;
+    background-color: rgb(163, 201, 241);
+    border-radius: 25px;
+    padding: 15px;
+    width: 100%;
+    height: 100%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    max-width: 100%;
+    position: relative;
   }
 
-  /* Estilização da barra de rolagem para a lista de favoritos */
   .favorite-list::-webkit-scrollbar {
     width: 10px;
   }
 
   .favorite-list::-webkit-scrollbar-thumb {
-    background-color: var(--secondary-color);
+    background-color: rgb(191, 226, 245);
     border-radius: 10px;
     border: 3px solid transparent;
   }
@@ -68,15 +76,15 @@
   }
 
   .remove-button {
-  position: absolute;
-  top: 4px; /* Antes estava 8px, agora está mais para cima */
-  right: 4px;
-  background: none;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  color: rgb(117, 169, 198);
-}
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: rgb(117, 169, 198);
+  }
 
   .remove-button:hover {
     color: rgb(209, 18, 18);
@@ -84,19 +92,50 @@
 
   .message-box {
     position: relative;
-    padding: 1.1rem;
+    padding: 10px;
     border-radius: 15px;
-    max-width: 85%;
+    max-width: 90%;
     word-wrap: break-word;
-    word-break: break-word;
+    background-color: white;
   }
 
-  .message-box.left {
-    background-color: white; /* Mensagem do assistente */
+  .toggle-button {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 18px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   }
 
-  .message-box.right {
-    background-color: rgb(191, 226, 245); /* Mensagem do usuário */
+  .toggle-button:hover {
+    background: var(--button-active);
   }
-
+  
+  .login-register-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .button {
+    width: 100%; 
+    border-radius: 15px;
+    font-size: 1.0rem;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  @media (max-width: 768px) {
+    .button {
+      width: auto; 
+    }
+  }
 </style>
