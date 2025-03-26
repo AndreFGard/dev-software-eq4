@@ -176,10 +176,12 @@
 	  {#each messages as msg}
 		<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
 		  <strong>{msg.username}:</strong> 
-		  <button
-			class="button is-primary favorite-button"
-			on:click={() => addToFavorites(msg)}>Add to Favorites
-		  </button>
+		  {#if msg.id !== null}
+			<button
+				class="button is-primary favorite-button"
+				on:click={() => addToFavorites(msg)}>Add to Favorites
+			</button>
+		  {/if}
 		  {@html renderMarkdown(msg.content)}
 		</li>
 	  {/each}
