@@ -76,3 +76,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+.button {
+  border-radius: 15px;
+  font-size: 1.0rem;
+  padding: 8px 16px;
+  height: 38px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2px; /* Alinhamento fino com a linha */
+}
