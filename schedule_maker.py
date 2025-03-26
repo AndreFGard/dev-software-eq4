@@ -52,15 +52,16 @@ class ScheduleMaker(MasterOpenaiInterface):
 Create a travel cronogram as a JSON object with this structure:
 {{
   "title": "string",
-  "explanations": "string (optional)"
+  "explanations": "string (e.g., You will visit the Louvre and look for Mona Lisa there, a great painting.)"
   "days": [
     {{
       "day": "number",
       "activities": [
         {{
-          "time": "string (e.g., '09:00 AM')",
           "name": "string",
           "duration": "string (e.g., '2 hours')",
+          "time": "string (e.g., '09:00 AM')",
+          "end_time": "string (e.g., '12:00 AM')",
           "description": "string",
           "notes": "string (optional)"
         }}
@@ -87,7 +88,7 @@ The cronogram should logically organize activities, respecting timing and travel
         # Try twice to generate a valid JSON response
         for attempt in range(2):
             try:
-                completion = await self.openai.chat.completions.create(
+                completion = await self.openai.chat.completions.create( #type: ignore
                     model=self.model,
                     messages=messages, #type: ignore
                     response_format={"type": "json_object"}

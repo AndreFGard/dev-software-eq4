@@ -90,9 +90,10 @@ class SearchItem(BaseModel):
 
 
 class ActivityDetail(BaseModel):
-    time: str
     name: str
+    time: str
     duration: str
+    end_time: str
     description: str
     explanations: str | None = None
 
@@ -103,4 +104,4 @@ class DayDetail(BaseModel):
 class Schedule(BaseModel):
     title: str
     days: list[DayDetail]
-    notes: str | None = None
+    explanations: str 
