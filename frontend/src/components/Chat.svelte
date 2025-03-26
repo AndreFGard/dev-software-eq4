@@ -6,7 +6,7 @@
 	export let messages: Message[] = [];
 	export let message = "";
 	export let handleAdd: () => void;
-	
+	import Cronogram from "./Cronogram.svelte";
 	let isLoading = false;
 	async function handleSend() {
 	  isLoading = true;
@@ -169,6 +169,7 @@
 	  <div class="header-content">
 		<h2 class="app-title">Mape.ia✈️</h2>
 		<Login />
+		<Cronogram></Cronogram>
 	  </div>
 	</div>
 	<ul class="messages-list">
