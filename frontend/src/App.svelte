@@ -1,20 +1,24 @@
 <script lang="ts">
+
   import Chat from './components/Chat.svelte';
   import Sidebar from './components/Sidebar.svelte';
   import { addMessage, getMessages, addToFavoritesBack, getFavorites } from './api.js';
   import type { Message } from './api.js';
+
   import { onMount } from 'svelte';
   import { removeFromFavoritesBack } from './api';
   import { writable } from "svelte/store";
   
   let favorites: Message[] = [];
   let error: string;
+
   let messages = [
     { username: 'assistant', content: 'Hello! Im GPT.' },
     { username: 'User', content: "Can you help me?" }
   ];
   let username = 'User';
   let message = '';
+
   let isExpanded = writable(false);
 
   onMount(async () => {
@@ -38,14 +42,16 @@
       console.error(e);
     }
   }
-
+  
   export async function addToFavorites(msg: Message) {
     favorites = await addToFavoritesBack(username, msg);
   }
-
+  
   async function removeFromFavorites(msg: Message) {
+
     favorites = favorites.filter(fav => fav.content !== msg.content);
     await removeFromFavoritesBack(username, msg);
+
   }
 </script>
 
