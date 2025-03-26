@@ -3,7 +3,7 @@
 	import type { Message } from "../api";
 	import { marked } from "marked";
 	import Login from './Login.svelte';
-	export let messages: Message[] = [];
+	export let messages: (Message | null)[] = [];
 	export let message = "";
 	export let handleAdd: () => void;
 	import Cronogram from "./Cronogram.svelte";
@@ -174,16 +174,20 @@
 	</div>
 	<ul class="messages-list">
 	  {#each messages as msg}
-		<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
-		  <strong>{msg.username}:</strong> 
-		  {#if msg.id !== null}
-			<button
-				class="button is-primary favorite-button"
-				on:click={() => addToFavorites(msg)}>Add to Favorites
-			</button>
-		  {/if}
-		  {@html renderMarkdown(msg.content)}
-		</li>
+		{#if msg === null}
+			<li class="message-box left">Loading...</li>
+		{:else}
+			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
+			<strong>{msg.username}:</strong> 
+			{#if msg.id !== null}
+				<button
+					class="button is-primary favorite-button"
+					on:click={() => addToFavorites(msg)}>Add to Favorites
+				</button>
+			{/if}
+			{@html renderMarkdown(msg.content)}
+			</li>
+		{/if}
 	  {/each}
 	</ul>
   

@@ -13,7 +13,7 @@
     let favorites: Message[] = [];
     let error: string;
     
-    let messages = [
+    let messages: (Message | null)[] = [
       { username: 'assistant', content: 'Hello! Im GPT.' },
       { username: 'User', content: "Can you help me?" }
     ];
@@ -37,7 +37,8 @@
         return;
       }
       try {
-        messages = await addMessage({ username, content: message, is_activity: false });
+        messages = messages.concat([{ username, content: message }, null]);
+        messages = await addMessage({ username, content: message});
         message = '';
       } catch (e) {
         console.error(e);

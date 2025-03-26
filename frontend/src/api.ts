@@ -3,7 +3,7 @@ export const apiUrl= import.meta.env.VITE_API_URL
 export interface Message{
     username: string;
     content:string;
-    id?:Number ;
+    id?:Number | null ;
 }
 
 
