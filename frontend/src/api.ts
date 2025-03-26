@@ -60,4 +60,23 @@ export async function removeFromFavoritesBack(username: string, msg:Message) {
         username: username, msg:msg}),
     });
   }
-  
+
+  export interface ActivityDetail {
+    time: string;
+    name: string;
+    duration: string;
+    end_time: string;
+    description: string;
+    explanations?: string | null;
+}
+
+export interface DayDetail {
+    day: number;
+    activities: ActivityDetail[];
+}
+
+export interface Schedule {
+    title: string;
+    days: DayDetail[];
+    explanations: string;
+}
