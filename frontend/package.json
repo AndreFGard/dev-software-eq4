@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "marked": "^15.0.4",
-    "svelte-radix": "^2.0.1"
+    "svelte-radix": "^2.0.1",
+    "svelte-routing": "^2.13.0"
   }
 }
