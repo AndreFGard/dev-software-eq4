@@ -48,31 +48,50 @@ class TestMain:
         assert any(m['username'] for m in response.json())
 
     def test_add_to_favorites(self):
+        client = TestClient(app)
+        # Add a message first to retrieve its ID
         msg = {"username": self.test_username, "content": "This is a favorite message."}
-        response = client.post("/addToFavorites", json={"username": self.test_username, "msg": msg})
+        response = client.post("/addMessage", json=msg)
+        assert response.status_code == 200
+        message_id = response.json()[-1]["id"]  # Assuming the last message is the one just added
+
+        # Add the message to favorites
+        response = client.post("/addToFavorites", json={"username": self.test_username, "id": message_id})
         assert response.status_code == 200
         assert len(response.json()) > 0
-        assert any(m['content'] for m in response.json())
+        assert all(Activity(**act) for act  in response.json())
 
     def test_get_favorites(self):
-        # Add a favorite first
+        client = TestClient(app)
+        # Add a message first to retrieve its ID
         msg = {"username": self.test_username, "content": "Another favorite message"}
-        client.post("/addToFavorites", json={"username": self.test_username, "msg": msg})
-        
-        # Then get favorites
+        response = client.post("/addMessage", json=msg)
+        assert response.status_code == 200
+        message_id = response.json()[-1]["id"]
+
+        # Add the message to favorites
+        client.post("/addToFavorites", json={"username": self.test_username, "id": message_id})
+
+        # Get favorites
         response = client.get(f"/getFavorites?username={self.test_username}")
+        print(response.json())
         assert response.status_code == 200
         assert len(response.json()) > 0
-        assert any(msg['content'] for m in response.json())
+        assert all(Activity(**act) for act  in response.json())
 
     def test_remove_favorite(self):
-        # Add a favorite
-        msg = {"username": self.test_username, "content": "Temporary favorite message", "id": 999}
-        client.post("/addToFavorites", json={"username": self.test_username, "msg": msg})
-        
-        # Remove the favorite
-        response = client.post("/removeFavorite", json={"username": self.test_username, "msg": msg})
+        client = TestClient(app)
+        # Add a message first to retrieve its ID
+        msg = {"username": self.test_username, "content": "Temporary favorite message"}
+        response = client.post("/addMessage", json=msg)
         assert response.status_code == 200
-        assert not any(m.get('id') == 999 for m in response.json())
+        message_id = response.json()[-1]["id"]
 
+        # Add the message to favorites
+        response = client.post("/addToFavorites", json={"username": self.test_username, "id": message_id})
+
+        # Remove the favorite
+        response = client.post("/removeFavorite", json={"username": self.test_username, "id": response.json()[-1]["id"]})
+        assert response.status_code == 200
+        assert all(Activity(**act) for act  in response.json())
 
