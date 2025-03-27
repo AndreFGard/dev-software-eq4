@@ -244,6 +244,9 @@ async def test_main():
     # testar dar update num item especifico de uma lista
     # testar deletar um item especifico de uma lista
 
+    # adicionar funções reais de add, update, read e delete
+    # colocar a que ja estao como funções privadas '__'
+
 if __name__ == "__main__":
     asyncio.run(test_main())
 
