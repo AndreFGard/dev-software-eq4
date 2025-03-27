@@ -16,7 +16,7 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 
-from schemas import LLMModelInfo, Schedule
+from schemas import GptMessage, LLMModelInfo, Schedule
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''
@@ -73,6 +73,7 @@ async def addMessage(msg: m.Message):
     reply = await openai.reply(user)
     user.addMessage(m.Message(username="assistant", content=reply ))
     messages =user.getMessageHistory()
+
     return messages
 
 addData = addMessage 
@@ -85,16 +86,15 @@ async def getMessages(username:str) -> List[m.Message]:
     return userdb.getUser(username).getMessageHistory()
 
 @app.post('/addToFavorites', response_model=List[m.Message])
-async def addToFavorites(username: str = Body(...), msg: m.Message = Body(...)) -> list[m.Message]:
+async def addToFavorites(username: str = Body(...), id: int = Body(...)) -> list[m.Message]:
     """Adiciona uma mensagem aos favoritos de um usuário"""
-
+    msg: GptMessage = userdb.getMessageById(username, id) #type: ignore
     userdb.addActivitiy(username, m.Activity(name="Act name", short_description="short description", long_description=msg.content))
     return [m.activity_to_message(act) for act in userdb.getActivities(username)]
 
 @app.post('/removeFavorite', response_model=List[m.Message])
 async def remove_favorite(username: str = Body(...), msg: m.Message = Body(...)):
     """Remove uma mensagem dos favoritos de um usuário"""
-    
     try:
         userdb.deleteAcitivty(username, msg.id)
     except:

@@ -22,7 +22,7 @@ class User():
 
         if msg.username != "assistant":
             role = "user"
-        msg.id = 1 if msg.id is None else msg.id
+        msg.id = 1 if len(self.message_history) == 0 and msg.id is None else self.message_history[-1].id + 1
         self.message_history.append(GptMessage(role=role, content=msg.content, id=msg.id))
         
     
@@ -31,6 +31,9 @@ class User():
 
         return [Message(username= self.username if item.role == "user" else "assistant", content=item.content, id = item.id) for item in self.message_history]
     
+    def getMessageById(self, id:int):
+        return next((msg for msg in self.message_history if msg.id == id), None)
+
     def dumpHistory(self):
         return[m.model_dump() for m in self.message_history]
     

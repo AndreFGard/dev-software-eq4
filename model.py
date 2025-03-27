@@ -30,6 +30,9 @@ class UserDB:
     def getMessageHistory(self, username:str) -> list[Message]:
         return self.getUser(username).getMessageHistory()
 
+    def getMessageById(self, username:str, id:int):
+        return self.users[username].getMessageById(id)
+
     def getActivities(self, username:str) -> list[Activity]:
         return list(self.users[username].getActivities().values())
 
