@@ -17,9 +17,11 @@
 	  return marked(content);
 	}
 
+	import { Skeleton } from "$lib/components/ui/skeleton";
 	import { username } from "../api";
 </script>
-  <style>
+
+<style>
 	:root {
 	  --primary-color: rgb(163, 201, 241); 
 	  --secondary-color: rgb(191, 226, 245);
@@ -164,7 +166,7 @@
 	  cursor: pointer;
 	}
 
-  </style>
+</style>
   
   <div class="box"> 
 	<div class="header-wrapper">
@@ -177,7 +179,13 @@
 	<ul class="messages-list">
 	  {#each messages as msg}
 		{#if msg === null}
-			<li class="message-box left">Loading...</li>
+			<strong>assistant:</strong> 
+			<li class="message-box left skeleton-block" >
+			<Skeleton class="h-[20px] bg-black/10 w-full max-w-[60rem] rounded-full"></Skeleton>
+			<Skeleton class="h-[20px] bg-black/10 w-[30rem] rounded-full"></Skeleton>
+			<Skeleton class="h-[20px] bg-black/10 w-[35rem] rounded-full"></Skeleton>
+		</li>
+			
 		{:else}
 			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
 			<div style="display: flex; align-items: center; gap: 10px;">
