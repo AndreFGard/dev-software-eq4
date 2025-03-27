@@ -16,7 +16,7 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 
-from schemas import Activity, GptMessage, LLMModelInfo, Schedule
+from schemas import Activity, GPTMessage, LLMModelInfo, Schedule
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''

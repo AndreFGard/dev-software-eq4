@@ -41,7 +41,7 @@ export async function addToFavoritesBack(username:string, msg: Message){
     return response.json()
 }
 
-export async function getFavorites(username: string): Promise<Message[]>{
+export async function getFavorites(username: string): Promise<Activity[]>{
     const response = await fetch(`${apiUrl}/getFavorites?username=${encodeURIComponent(username)}`, {
         method: 'GET',
         headers: {
@@ -51,15 +51,23 @@ export async function getFavorites(username: string): Promise<Message[]>{
     return response.json()
 }
 
-export async function removeFromFavoritesBack(username: string, msg:Message) {
-    console.log("Chamando API", username, msg);
-    await fetch(`${apiUrl}/removeFavorite`, {
+export async function removeFromFavoritesBack(username: string, act:Activity) {
+    const response = await fetch(`${apiUrl}/removeFavorite`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
-        username: username, msg:msg}),
+        username: username, id:act.id}),
     });
+    return response.json() as Promise<Activity[]>;
   }
+
+export interface Activity{
+    name: string;
+    short_description: string;
+    long_description: string;
+    id:number;
+}
+
 
   export interface ActivityDetail {
     time: string;

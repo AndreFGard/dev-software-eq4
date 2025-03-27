@@ -1,10 +1,26 @@
 from pydantic import BaseModel
 from enum import Enum
 import time 
-class GptMessage(BaseModel):
+class GPTMessage(BaseModel):
+    """
+    A message compatible with openai's message type.
+    """
+    role: str
+    content: str
+
+class DBMessage(GPTMessage):
+    """The internal representation of Messages. It includes an id field"""
     role: str
     content: str
     id: int = 0
+
+
+class Message(BaseModel):
+    """The chat representation of a message. Contains an id field
+     and a username field, not to be mixed up with the role field"""
+    username: str
+    content: str
+    id: int | None = None
 
 class Activity(BaseModel):
     name: str
@@ -17,10 +33,7 @@ class UserStatus(Enum):
     SUMMARIZING_ACTIVITIES = 'summarizing_activities'
     MODIFYING_ACTIVITY = 'modifying_activity'
     
-class Message(BaseModel):
-    username: str
-    content: str
-    id: int | None = None
+
 
 def activity_to_message(activity: Activity) -> Message:
     return Message(username="assistant", content=f"Activity: {activity.name}\n{activity.short_description}\n{activity.long_description}", id=activity.id)

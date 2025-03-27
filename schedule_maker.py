@@ -77,11 +77,9 @@ The cronogram should logically organize activities, respecting timing and travel
         # Combine messages
         messages = [self.get_system_message()]
         # Add conversation history to provide context
-        messages.extend(user.dumpHistory())
-        # Remove id field which might cause issues
-        for message in messages:
-            if "id" in message:
-                message.pop("id")
+        messages.extend(user.dumpGPTMessages())
+        
+        
         # Add the final user prompt requesting the cronogram
         messages.append({"role": "user", "content": user_prompt})
         
