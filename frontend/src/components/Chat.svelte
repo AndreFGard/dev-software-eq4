@@ -180,13 +180,15 @@
 			<li class="message-box left">Loading...</li>
 		{:else}
 			<li class="message-box {msg.username === 'assistant' ? 'left' : 'right'}">
-			<strong>{msg.username}:</strong> 
-			{#if msg.id !== null}
-				<button
-					class="button is-primary favorite-button"
-					on:click={() => addToFavorites(msg)}>Add to Favorites
-				</button>
-			{/if}
+			<div style="display: flex; align-items: center; gap: 10px;">
+				<strong>{msg.username}:</strong> 
+				{#if msg.id !== null}
+					<button
+						class="button is-primary favorite-button"
+						on:click={() => addToFavorites(msg)}>Add to Favorites
+					</button>
+				{/if}
+			</div>
 			{@html renderMarkdown(msg.content)}
 			</li>
 		{/if}

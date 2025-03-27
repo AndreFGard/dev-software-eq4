@@ -10,6 +10,11 @@
   function toggleSidebar() {
     isExpanded.update(value => !value);
   }
+  import {marked} from "marked";
+  function renderMarkdown(content: string) {
+	  return marked(content);
+	}
+
 </script>
 
 <div class="box">
@@ -19,7 +24,8 @@
     {#each favorites as act}
       <li class="message-box">
         <button class="remove-button" on:click={() => removeFromFavorites($username, act)}>✖</button>
-        <strong>{act.name}:</strong> {@html act.short_description}
+        <h3 class="text-lg font-semibold text-gray-800">{act.name}:</h3>
+        {@html renderMarkdown(act.short_description)}
       </li>
     {/each}
   </ul>
