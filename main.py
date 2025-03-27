@@ -125,6 +125,8 @@ async def getSchedule(username: str) -> Schedule | None:
 async def makeSchedule(username: str):
     try:
         sched = await openai.make_schedule(userdb.getUser(username), userdb.getActivities(username))
+        if sched:
+            userdb.addSchedule(username, sched)
         return sched
     except Exception as e:
         print(e)

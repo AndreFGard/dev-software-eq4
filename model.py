@@ -67,6 +67,9 @@ class UserDB:
             act.id = len(self.users[username].getActivities()) + 1
         
         self.users[username].addActivity(act)
+    
+    def addSchedule(self, username:str, sched: Schedule):
+        self.getUser(username).addSchedule(sched)
 
     def getSchedule(self, username:str) -> Schedule | None:
         if username not in self.users:
