@@ -4,13 +4,13 @@
     import Chat from '../components/Chat.svelte';
     import Sidebar from '../components/Sidebar.svelte';
     import { addMessage, getMessages, addToFavoritesBack, getFavorites } from '../api.js';
-    import type { Message } from '../api.js';
+    import type { Message, Activity } from '../api.js';
     
     import { onMount } from 'svelte';
     import { removeFromFavoritesBack } from '../api';
     import { writable } from "svelte/store";
     
-    let favorites: Message[] = [];
+    let favorites: Activity[] = [];
     let error: string;
     
     let messages: (Message | null)[] = [
@@ -46,20 +46,20 @@
     }
     
     export async function addToFavorites(msg: Message) {
+      console.log(`sending request to add ${msg} to favorites`);
       favorites = await addToFavoritesBack(username, msg);
     }
     
-    async function removeFromFavorites(msg: Message) {
+    async function removeFromFavorites(_username:string, act: Activity) {
     
-      favorites = favorites.filter(fav => fav.content !== msg.content);
-      await removeFromFavoritesBack(username, msg);
+      favorites = await removeFromFavoritesBack(username, act);
     
     }
   </script>
   
   <main id="chat-cont">
     <div class="content-wrapper">
-      <Sidebar {favorites} class="{isExpanded ? 'sidebar expanded' : 'sidebar collapsed'}" removeFromFavorites={removeFromFavorites} bind:isExpanded />
+      <Sidebar {favorites} {username} class="{isExpanded ? 'sidebar expanded' : 'sidebar collapsed'}" removeFromFavorites={removeFromFavorites} bind:isExpanded />
       <Chat {handleAdd} bind:messages={messages} bind:message={message} addToFavorites={addToFavorites} />
     </div>
   </main>

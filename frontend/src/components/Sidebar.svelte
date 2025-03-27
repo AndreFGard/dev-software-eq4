@@ -1,10 +1,11 @@
 <script lang="ts">
   import { writable } from "svelte/store";
   import Login from './Login.svelte'; 
-  export let favorites = [];
-  export let removeFromFavorites: (msg: { username: string; content: string }) => void; 
+  import type { Activity } from "../api";
+  export let favorites: Activity[] = [];
+  export let removeFromFavorites: (username: string, act: Activity) => void; 
   export let isExpanded = writable(false);
-
+  export let username = 'User';
   function toggleSidebar() {
     isExpanded.update(value => !value);
   }
@@ -14,10 +15,10 @@
   <button class="toggle-button" on:click={toggleSidebar}>☰</button>
   <h2 class="favorites-title">Favorites:</h2>
   <ul class="favorite-list">
-    {#each favorites as msg}
+    {#each favorites as act}
       <li class="message-box">
-        <button class="remove-button" on:click={() => removeFromFavorites(msg)}>✖</button>
-        <strong>{msg.username}:</strong> {@html msg.content}
+        <button class="remove-button" on:click={() => removeFromFavorites(username, act)}>✖</button>
+        <strong>{act.name}:</strong> {@html act.short_description}
       </li>
     {/each}
   </ul>

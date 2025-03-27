@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let addToFavorites: (msg: { username: string; content: string }) => void;
-	import type { Message } from "../api";
+	import type { Activity, Message } from "../api";
+	export let addToFavorites: (msg: Message) => Promise<Activity[]>;
 	import { marked } from "marked";
 	import Login from './Login.svelte';
 	export let messages: (Message | null)[] = [];
