@@ -3,7 +3,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
-from schemas import GptMessage, Message, Activity, UserStatus
+from schemas import GPTMessage, Message, Activity, UserStatus
 from user import User
 
 class TestUser:
@@ -17,7 +17,7 @@ class TestUser:
         assert user.__activities__ == {}
 
     def test_initialization_custom(self):
-        message_history = [GptMessage(role="user", content="Hi there!", id=1)]
+        message_history = [GPTMessage(role="user", content="Hi there!")]
         user = User(username="Alice", message_history=message_history)
         assert user.username == "Alice"
         assert len(user.message_history) == 1
@@ -105,7 +105,7 @@ class TestUser:
         user = User()
         msg = Message(username="user", content="I want to travel to Paris.")
         user.addMessage(msg)
-        dumped_history = user.dumpHistory()
+        dumped_history = user.dumpGPTMessages()
         assert len(dumped_history) == 2
         assert dumped_history[-1]['content'] == "I want to travel to Paris."
         assert dumped_history[-1]['role'] == "user"

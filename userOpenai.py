@@ -44,7 +44,7 @@ class userOpenai(MasterOpenaiInterface):
 
 
     def getSystemMessage(self, user: User):
-        return [GptMessage(role='system',content=prompts[user.status]).model_dump()]
+        return [GPTMessage(role='system',content=prompts[user.status]).model_dump()]
 
     async def reply(self, user:User):
         if self.openai:
@@ -94,7 +94,7 @@ class userOpenai(MasterOpenaiInterface):
         """
         
         messages = [
-            GptMessage(role="system", content="""You are an evaluator determining the relevance of retrieved information, that responds in json.
+            GPTMessage(role="system", content="""You are an evaluator determining the relevance of retrieved information, that responds in json.
             Determine if the provided information is relevant to a query enough. The JSON schema you will follow is this:
             {
             "query": "The query that was asked",
@@ -103,8 +103,8 @@ class userOpenai(MasterOpenaiInterface):
             """).model_dump(),
         ]
 
-        messages += user.dumpHistory()[:-4]
-        messages.append(GptMessage(role="user", content=evaluation_prompt).model_dump())
+        messages += user.dumpGPTMessages()[:-4]
+        messages.append(GPTMessage(role="user", content=evaluation_prompt).model_dump())
         
         for message in messages:
             if "id" in message:
@@ -130,7 +130,7 @@ class userOpenai(MasterOpenaiInterface):
         #make the retrieved info placeholder tool available to gpt, detect if it was called (the gpt is already instructured
         # to only call it if needed) and then try again while providing the returned data
         choice = ""
-        messages=self.getSystemMessage(user) + user.dumpHistory()
+        messages=self.getSystemMessage(user) + user.dumpGPTMessages()
 
         [m.pop("id") for m in messages]
         completion = await self.openai.chat.completions.create( #type: ignore
@@ -162,8 +162,8 @@ class userOpenai(MasterOpenaiInterface):
             }
         ]
         
-        messages = self.getSystemMessage(user) + user.dumpHistory()
-        [m.pop("id") for m in messages]
+        messages = self.getSystemMessage(user) + user.dumpGPTMessages()
+
         
         # First call with tool definition
         completion = await self.openai.chat.completions.create( #type: ignore

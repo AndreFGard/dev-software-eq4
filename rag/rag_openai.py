@@ -14,14 +14,14 @@ class RAGOpenai(MasterOpenaiInterface):
     async def __summarize_req(self, piece:str) -> str:
         """Summarize piece of text, using a cheap/HIGH LIMIT model such as gemini"""
         messages=[
-            GptMessage(role="system", 
+            GPTMessage(role="system", 
                 content=self.summarize_prompt).model_dump(),
 
-            GptMessage(role="user",
+            GPTMessage(role="user",
                 content=piece).model_dump()
         ]
 
-        [m.pop("id") for m in messages]
+
         
         completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
