@@ -1,8 +1,10 @@
 <script lang="ts">
     import * as Dialog from "$lib/components/ui/dialog";
     import * as Alert from "$lib/components/ui/alert";
+    import {createSchedule} from "../api.js";
     import '../app.css';
     import type {Schedule} from "../api.ts";
+    import { username } from "../api";
     export let schedule: Schedule | null = {
         title: "Conference Schedule 2024",
         days: [
@@ -61,59 +63,59 @@
             <Dialog.Title>{"Schedule"}</Dialog.Title>
         </Dialog.Header>
         <div id="schedule-content" class="max-h-[70vh] overflow-y-auto px-6 py-2">
-        {#if schedule != null}
+            {#if schedule != null}
                 <div >
-                {#each schedule.days as day}
-                    <div class="mb-6">
-                        <h3 class="title is-4 mb-3">Day {day.day}</h3>
-                        <div class="table-container">
-                            <table class="table is-striped is-hoverable is-fullwidth">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Activity</th>
-                                        <th>Duration</th>
-                                        <th class="is-hidden-mobile">End</th>
-                                        <th>Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {#each day.activities as activity}
+                    {#each schedule.days as day}
+                        <div class="mb-6">
+                            <h3 class="title is-4 mb-3">Day {day.day}</h3>
+                            <div class="table-container">
+                                <table class="table is-striped is-hoverable is-fullwidth">
+                                    <thead>
                                         <tr>
-                                            <td>{activity.time}</td>
-                                            <td>{activity.name}</td>
-                                            <td>{activity.duration}</td>
-                                            <td class="is-hidden-mobile">{activity.end_time}</td>
-                                            <td>
-                                                {activity.description}
-                                                {#if activity.explanations}
-                                                    <p class="help">{activity.explanations}</p>
-                                                {/if}
-                                            </td>
+                                            <th>Time</th>
+                                            <th>Activity</th>
+                                            <th>Duration</th>
+                                            <th class="is-hidden-mobile">End</th>
+                                            <th>Description</th>
                                         </tr>
-                                    {/each}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {#each day.activities as activity}
+                                            <tr>
+                                                <td>{activity.time}</td>
+                                                <td>{activity.name}</td>
+                                                <td>{activity.duration}</td>
+                                                <td class="is-hidden-mobile">{activity.end_time}</td>
+                                                <td>
+                                                    {activity.description}
+                                                    {#if activity.explanations}
+                                                        <p class="help">{activity.explanations}</p>
+                                                    {/if}
+                                                </td>
+                                            </tr>
+                                        {/each}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                {/each}
-            </div>
-            {#if schedule.explanations}
-                <div class="mt-6 px-4">
-                    <h4 class="title is-5 mb-2">Additional Information</h4>
-                    <p class="content">{schedule.explanations}</p>
+                    {/each}
                 </div>
-            {/if}
-    {:else}
-        <div class="flex justify-center">
-            <div class="w-full sm:w-auto">
-                <Alert.Root>
-                    <Alert.Title>No schedule available</Alert.Title>
-                    <Alert.Description>Please create a Schedule with the button below</Alert.Description>
-                </Alert.Root>
+                {#if schedule.explanations}
+                    <div class="mt-6 px-4">
+                        <h4 class="title is-5 mb-2">Additional Information</h4>
+                        <p class="content">{schedule.explanations}</p>
+                    </div>
+                {/if}
+        {:else}
+            <div class="flex justify-center">
+                <div class="w-full sm:w-auto">
+                    <Alert.Root>
+                        <Alert.Title>No schedule available</Alert.Title>
+                        <Alert.Description>Please create a Schedule with the button below</Alert.Description>
+                    </Alert.Root>
+                </div>
             </div>
-        </div>
-    {/if}
+        {/if}
         </div>
     <Dialog.Footer class=''>
         <button onclick={async () => schedule = await createSchedule($username)} class='button is-primary has-text-black'>
