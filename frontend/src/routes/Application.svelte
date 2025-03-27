@@ -17,15 +17,15 @@
       { username: 'assistant', content: 'Hello! Im GPT.' },
       { username: 'User', content: "Can you help me?" }
     ];
-    let username = 'User';
+    import { username } from "../api";
     let message = '';
     
     let isExpanded = writable(false);
     
     onMount(async () => {
       try {
-        messages = await getMessages(username);
-        favorites = await getFavorites(username);
+        messages = await getMessages($username);
+        favorites = await getFavorites($username);
       } catch (e: any) {
         error = e.message || e;
       }
@@ -37,8 +37,8 @@
         return;
       }
       try {
-        messages = messages.concat([{ username, content: message }, null]);
-        messages = await addMessage({ username, content: message});
+        messages = messages.concat([{ username:$username, content: message }, null]);
+        messages = await addMessage({ username:$username, content: message});
         message = '';
       } catch (e) {
         console.error(e);
@@ -47,19 +47,19 @@
     
     export async function addToFavorites(msg: Message) {
       console.log(`sending request to add ${msg} to favorites`);
-      favorites = await addToFavoritesBack(username, msg);
+      favorites = await addToFavoritesBack($username, msg);
     }
     
     async function removeFromFavorites(_username:string, act: Activity) {
     
-      favorites = await removeFromFavoritesBack(username, act);
+      favorites = await removeFromFavoritesBack($username, act);
     
     }
   </script>
   
   <main id="chat-cont">
     <div class="content-wrapper">
-      <Sidebar {favorites} {username} class="{isExpanded ? 'sidebar expanded' : 'sidebar collapsed'}" removeFromFavorites={removeFromFavorites} bind:isExpanded />
+      <Sidebar {favorites} class="{isExpanded ? 'sidebar expanded' : 'sidebar collapsed'}" removeFromFavorites={removeFromFavorites} bind:isExpanded />
       <Chat {handleAdd} bind:messages={messages} bind:message={message} addToFavorites={addToFavorites} />
     </div>
   </main>

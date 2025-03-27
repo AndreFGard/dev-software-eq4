@@ -5,7 +5,8 @@
   export let favorites: Activity[] = [];
   export let removeFromFavorites: (username: string, act: Activity) => void; 
   export let isExpanded = writable(false);
-  export let username = 'User';
+  import { username } from "../api";
+  username.set('User');
   function toggleSidebar() {
     isExpanded.update(value => !value);
   }
@@ -17,7 +18,7 @@
   <ul class="favorite-list">
     {#each favorites as act}
       <li class="message-box">
-        <button class="remove-button" on:click={() => removeFromFavorites(username, act)}>✖</button>
+        <button class="remove-button" on:click={() => removeFromFavorites($username, act)}>✖</button>
         <strong>{act.name}:</strong> {@html act.short_description}
       </li>
     {/each}

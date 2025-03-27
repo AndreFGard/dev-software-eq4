@@ -1,5 +1,10 @@
 export const apiUrl= import.meta.env.VITE_API_URL
 
+
+import { writable } from "svelte/store";
+
+export const username = writable<string>('User');
+
 export interface Message{
     username: string;
     content:string;
@@ -60,6 +65,18 @@ export async function removeFromFavoritesBack(username: string, act:Activity) {
     });
     return response.json() as Promise<Activity[]>;
   }
+
+
+export async function createSchedule(username:string): Promise<Schedule>{
+    const response = await fetch(`${apiUrl}/createSchedule?username=${encodeURIComponent(username)}`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        }
+    })
+    return response.json()
+}
+
 
 export interface Activity{
     name: string;

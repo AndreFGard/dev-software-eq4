@@ -56,12 +56,13 @@
 <Dialog.Root>
 
     <Dialog.Trigger class="button">Open Schedule</Dialog.Trigger>
-    <Dialog.Content class="sm:max-w-[80vw] w-[100vw]">
+    <Dialog.Content class="sm:max-w-[70vw] w-[100vw] px-4 shadow">
         <Dialog.Header>
             <Dialog.Title>{"Schedule"}</Dialog.Title>
         </Dialog.Header>
+        <div id="schedule-content" class="max-h-[70vh] overflow-y-auto px-6 py-2">
         {#if schedule != null}
-            <div class="max-h-[60vh] overflow-y-auto px-4">
+                <div >
                 {#each schedule.days as day}
                     <div class="mb-6">
                         <h3 class="title is-4 mb-3">Day {day.day}</h3>
@@ -72,7 +73,6 @@
                                         <th>Time</th>
                                         <th>Activity</th>
                                         <th>Duration</th>
-                                        <th class="is-hidden-mobile">Start</th>
                                         <th class="is-hidden-mobile">End</th>
                                         <th>Description</th>
                                     </tr>
@@ -83,7 +83,6 @@
                                             <td>{activity.time}</td>
                                             <td>{activity.name}</td>
                                             <td>{activity.duration}</td>
-                                            <td class="is-hidden-mobile">{activity.time}</td>
                                             <td class="is-hidden-mobile">{activity.end_time}</td>
                                             <td>
                                                 {activity.description}
@@ -115,5 +114,11 @@
             </div>
         </div>
     {/if}
+        </div>
+    <Dialog.Footer class=''>
+        <button onclick={async () => schedule = await createSchedule($username)} class='button is-primary has-text-black'>
+            {schedule === null ? '':"Re"}create Schedule
+        </button>
+    </Dialog.Footer>    
     </Dialog.Content>
 </Dialog.Root>

@@ -108,9 +108,9 @@ async def getFavorites(username: str) -> list[Activity]:
     """Retorna as mensagens favoritas de um usuário"""
 
     return userdb.getActivities(username)
-
-@app.post('/makeSchedule', response_model=Schedule)
-async def makeSchedule(username: str = Body(...)):
+    
+@app.post('/createSchedule', response_model=Schedule)
+async def makeSchedule(username: str):
     try:
         sched = await openai.make_schedule(userdb.getUser(username), userdb.getActivities(username))
         return sched

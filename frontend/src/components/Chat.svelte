@@ -16,6 +16,8 @@
 	function renderMarkdown(content: string) {
 	  return marked(content);
 	}
+
+	import { username } from "../api";
 </script>
   <style>
 	:root {
