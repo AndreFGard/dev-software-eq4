@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Dialog from "$lib/components/ui/dialog";
     import * as Alert from "$lib/components/ui/alert";
-    import {createSchedule} from "../api.js";
+    import {createSchedule, getSchedule} from "../api.js";
     import '../app.css';
     import type {Schedule} from "../api.ts";
     import { username } from "../api";
@@ -120,6 +120,9 @@
     <Dialog.Footer class=''>
         <button onclick={async () => schedule = await createSchedule($username)} class='button is-primary has-text-black'>
             {schedule === null ? '':"Re"}create Schedule
+        </button>
+        <button onclick={async () => schedule = await getSchedule($username)} class="button is-light">
+            Reload 
         </button>
     </Dialog.Footer>    
     </Dialog.Content>

@@ -15,6 +15,7 @@ class User():
         self.message_history = message_history
         self.__activities__ = {}
         self.status = UserStatus.DISCUSSING
+        self.schedules: list[Schedule] = []
 
 
     def addMessage(self, msg: Message):
@@ -24,7 +25,9 @@ class User():
             role = "user"
         msg.id = 1 if len(self.message_history) == 0 and msg.id is None else self.message_history[-1].id + 1
         self.message_history.append(DBMessage(role=role, content=msg.content, id=msg.id))
-        
+    
+    def addSchedule(self, sched: Schedule):
+        self.schedules.append(sched)
     
     # retorna cada mensagem do historico no formato de Message
     def getMessageHistory(self) -> List[Message]:
@@ -41,7 +44,8 @@ class User():
         act.id = 1 if act.id is None else act.id
         self.__activities__[act.id] = act
         
-    
+    def getSchedule(self, username:str):
+        return self.schedules[-1] if len(self.schedules) else None
     def getActivities(self):
         return self.__activities__
     

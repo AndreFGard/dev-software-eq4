@@ -68,6 +68,11 @@ class UserDB:
         
         self.users[username].addActivity(act)
 
+    def getSchedule(self, username:str) -> Schedule | None:
+        if username not in self.users:
+            print(f"User: {username} was not found in the database. ")
+            raise ValueError(f"User: {username} was not found in the database")
+        return self.users[username].getSchedule(username)
 
 
     def __repr__(self):

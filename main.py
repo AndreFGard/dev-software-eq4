@@ -108,7 +108,19 @@ async def getFavorites(username: str) -> list[Activity]:
     """Retorna as mensagens favoritas de um usuário"""
 
     return userdb.getActivities(username)
-    
+
+
+@app.get('/getSchedule',)
+async def getSchedule(username: str) -> Schedule | None:
+    try:
+        sched = userdb.getSchedule(username)
+        if not sched: print(f"No schedule found for user {username}")
+        return sched
+        
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Failed to get schedule, user likely not in the database")
+
 @app.post('/createSchedule', response_model=Schedule)
 async def makeSchedule(username: str):
     try:
@@ -117,6 +129,7 @@ async def makeSchedule(username: str):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to generate schedule")
+
 
 
 if os.path.exists('frontend/dist'):

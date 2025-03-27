@@ -67,6 +67,16 @@ export async function removeFromFavoritesBack(username: string, act:Activity) {
   }
 
 
+export async function getSchedule(username:string): Promise<Schedule | null>{
+    const response = await fetch(`${apiUrl}/getSchedule?username=${encodeURIComponent(username)}`, {
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        }
+    })
+    return response.json();
+}
+
 export async function createSchedule(username:string): Promise<Schedule>{
     const response = await fetch(`${apiUrl}/createSchedule?username=${encodeURIComponent(username)}`, {
         method: 'POST',
