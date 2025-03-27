@@ -36,7 +36,7 @@ export async function addToFavoritesBack(username:string, msg: Message){
         headers: {
         'Content-Type': 'application/json',
         },
-        body: JSON.stringify({username: username, msg: msg}),
+        body: JSON.stringify({username: username, id: msg.id}),
     })
     return response.json()
 }
