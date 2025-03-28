@@ -1,14 +1,23 @@
 from schemas import *
 from .chunker import SlidingWindowChunking
+
+__summarize_prompt = """You are an expert travel assistant helping users plan their trips by extracting useful information from online sources. You receive a website-based document containing relevant travel-related details about a specific location. Your goal is to generate a concise and informative summary that highlights the most relevant attractions, activities, cultural insights, and practical travel tips.
+
+Instructions:
+
+    Identify Key Information: Extract details about popular tourist spots, historical landmarks, local cuisine, transportation tips, and unique experiences mentioned in the content.
+
+    Prioritize Relevance: Focus on the most significant details for a traveler, omitting overly generic or redundant information.
+
+    Summarize Clearly: Use natural, well-structured sentences that are easy to understand. The summary should be engaging yet concise.
+
+    Maintain Markdown Formatting: Preserve headings (##), bullet points (-), and bold/italic styling when necessary."""
 class RAGOpenai(MasterOpenaiInterface):
     """Provides LLM utilities for RAG purposes"""
-    def __init__(self, cheap_models:list[LLMModelInfo]):
+    def __init__(self, cheap_models:list[LLMModelInfo], prompt:str = ''):
             super().__init__(cheap_models=cheap_models)
             print(f"RAG: using {self.model}")
-            self.summarize_prompt = """You are a summarization assistant. When summarizing a text,
-              provide only a concise, clear summary without any greetings, preamble, or extra commentary. 
-              Do not include phrases like \"Sure!\" or
-              \"Here is the summary.\" Simply output the summary in a direct and succinct manner.""".replace("\n", " ")
+            self.summarize_prompt =  prompt or __summarize_prompt
             self.chunker = SlidingWindowChunking(window_size=self.rate_limit//2, step=90)
 
     async def __summarize_req(self, piece:str) -> str:
