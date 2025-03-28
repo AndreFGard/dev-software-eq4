@@ -68,7 +68,7 @@ class userOpenai(MasterOpenaiInterface):
         
         # If the results are not relevant, search the web
         if not is_relevant:
-            print("RETRIEVAL: SEARCHING")
+            print(f"RETRIEVAL: SEARCHIN '{query}'")
             return await self.RAG.retrieve_with_search(query)
         else:
             print("RETRIEVAL: DATABASE")
@@ -147,7 +147,7 @@ class userOpenai(MasterOpenaiInterface):
                 "type": "function",
                 "function": {
                     "name": "retrieve_info",
-                    "description": "Search for information about travel destinations on the internet",
+                    "description": "Search for information about travel destinations on google",
                     "parameters": {
                         "type": "object",
                         "properties": {
