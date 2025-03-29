@@ -13,6 +13,11 @@
 	  await handleAdd();
 	  isLoading = false;
 	}
+	marked.use({
+		breaks: true,
+		gfm: true,
+	});
+
 	function renderMarkdown(content: string) {
 	  return marked(content);
 	}

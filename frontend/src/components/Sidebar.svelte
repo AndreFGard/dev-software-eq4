@@ -10,7 +10,12 @@
   function toggleSidebar() {
     isExpanded.update(value => !value);
   }
+  
   import {marked} from "marked";
+  marked.use({
+      breaks: true,
+      gfm: true,
+  });
   function renderMarkdown(content: string) {
 	  return marked(content);
 	}
