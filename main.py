@@ -142,8 +142,8 @@ async def makeSchedule(username: str):
         print(e)
         raise HTTPException(status_code=500, detail="Failed to generate schedule")
 
-import auth
-app.include_router(auth.router, prefix="/auth", tags=["authentication"])
+# import auth
+# app.include_router(auth.router, prefix="/auth", tags=["authentication"])
 
 if os.path.exists('frontend/dist'):
     app.mount("/", staticfiles.StaticFiles(directory="frontend/dist", html=True), name="static")
