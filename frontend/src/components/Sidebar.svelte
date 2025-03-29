@@ -19,7 +19,14 @@
   function renderMarkdown(content: string) {
 	  return marked(content);
 	}
-
+	
+  import * as Popover from "$lib/components/ui/popover";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Trash from "@lucide/svelte/icons/trash";
+  import { Textarea } from "$lib/components/ui/textarea/index.js";
 </script>
 
 <div class="box">
@@ -28,8 +35,47 @@
   <ul class="favorite-list">
     {#each favorites as act}
       <li class="message-box">
-        <button class="remove-button" on:click={() => removeFromFavorites($username, act)}>✖</button>
-        <h3 class="text-lg font-semibold text-gray-800">{act.name}:</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-800">{act.name}:</h3>
+
+          <div class="flex items-center gap-2">
+            <Popover.Root portal={null}>
+              <Popover.Trigger asChild let:builder>
+                <Button builders={[builder]} variant="secondary" >
+                  <Pencil class="h-4 w-4 mr-2" color="red" />
+                  Edit
+                </Button>
+              </Popover.Trigger>
+                <Popover.Content class="w-full" strategy="absolute">
+                <div class="grid gap-2">
+                  <div class="space-y-2">
+                    <h4 class="font-medium leading-none">Customize Activity</h4>
+                    <p class="text-muted-foreground text-sm">
+                      Customize the activity to better reflect your preferences, such as the time to be spent in it, or what time of the day to do it.
+                    </p>
+                  </div>
+                  <div class="grid gap-2">
+                    <div class="grid grid-cols-4 items-center gap-2">
+                      <Label for="actName">Name</Label>
+                      <Textarea id="actName" value="{act.name}" class="col-span-3 h-8" />
+                    </div>
+                    <div class="grid grid-cols-4 items-center gap-2">
+                      <Label for="shortDescription">Short Description</Label>
+                      <Textarea id="shortDescription" bind:value={act.short_description} class="col-span-3 h-8"/>
+                    </div>
+                    <div class="grid grid-cols-4 items-center gap-2">
+                      <Label for="longDescription">Long Description</Label>
+                      <Textarea id="longDescription" bind:value={act.long_description} class="col-span-3 h-8" />
+                    </div>
+                  </div>
+                </div>
+              </Popover.Content>
+            </Popover.Root>
+            <Button class="remove-button" size="icon" variant="secondary" on:click={() => removeFromFavorites($username, act)}>
+              <Trash class="h-4 w-4 remove-button" color="red"/>
+            </Button>
+            </div>
+          </div>
         {@html renderMarkdown(act.short_description)}
       </li>
     {/each}
@@ -37,6 +83,8 @@
 </div>
 
 <style>
+
+
   .favorite-list {
     list-style-type: none;
     padding: 10px 0; 
@@ -96,7 +144,7 @@
     border: none;
     font-size: 14px;
     cursor: pointer;
-    color: rgb(117, 169, 198);
+    color: #75a9c6;
   }
 
   .remove-button:hover {
