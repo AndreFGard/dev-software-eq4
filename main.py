@@ -16,7 +16,7 @@ if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]):
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
 
-from schemas import Activity, GPTMessage, LLMModelInfo, Schedule
+from schemas import Activity, GPTMessage, LLMModelInfo, Schedule, message_to_gpt_message
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''
@@ -72,7 +72,7 @@ async def addMessage(msg: m.Message):
     user.addMessage(msg)
     reply = await openai.reply(user)
     user.addMessage(m.Message(username="assistant", content=reply ))
-    messages =user.getMessageHistory()
+    messages =list(user.getMessageHistory().values())
 
     return messages
 
@@ -83,14 +83,26 @@ async def getMessages(username:str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
 
-    return userdb.getUser(username).getMessageHistory()
+    return list(userdb.getMessageHistory(username).values())
 
+import bisect
 @app.post('/addToFavorites', response_model=List[Activity])
 async def addToFavorites(username: str = Body(...), id: int = Body(...)) -> list[Activity]:
     """Adiciona uma mensagem aos favoritos de um usuário"""
-    msg: GptMessage = userdb.getMessageById(username, id) #type: ignore
-    userdb.addActivitiy(username, m.Activity(name="Act name", short_description=msg.content, long_description=msg.content))
-    return userdb.getActivities(username)
+    messages =  userdb.getMessageHistory(username)
+    msg = messages.get(id)
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    mslist = list(messages.items())
+    #
+
+    activities = await openai.schedule_maker.build_activity_from_messages(message_to_gpt_message(msg), 
+                        [message_to_gpt_message(msg) 
+                        for msg in tuple(messages.values())[id-5:min(len(messages), id+5)]])
+                        
+    [userdb.addActivitiy(username, act) for act in activities]
+    return activities
 
 @app.post('/removeFavorite', response_model=List[Activity])
 async def remove_favorite(username: str = Body(...), id: int = Body(...)) ->list[Activity]:

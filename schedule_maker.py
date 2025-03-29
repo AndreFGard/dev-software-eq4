@@ -55,8 +55,6 @@ class ScheduleMaker(MasterOpenaiInterface):
                           ] + message_history[-6:] + [
                           GPTMessage(role="user", content=message.content)]]
 
-
-
       for attempt in range(2):
           try:
               completion = await self.openai.chat.completions.create( #type: ignore

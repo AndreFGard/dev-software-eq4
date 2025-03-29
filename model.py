@@ -1,13 +1,4 @@
-from pydantic import BaseModel
-from typing import List
-from enum import Enum
-from openai import OpenAI, AsyncOpenAI
-import random
-import pandas as pd
-import numpy as np
-import time
-import asyncio as aio
-
+import schedule_maker
 from schemas import *
 
 from userOpenai import *
@@ -27,7 +18,7 @@ class UserDB:
             self.users[username] = User(username)
             return self.users[username]
 
-    def getMessageHistory(self, username:str) -> list[Message]:
+    def getMessageHistory(self, username:str) -> dict[int, Message]:
         return self.getUser(username).getMessageHistory()
 
     def getMessageById(self, username:str, id:int):
@@ -80,6 +71,7 @@ class UserDB:
     def updateActivity(self, username:str, id:int, act: Activity):
         user = self.getUser(username)
         return user.updateActivity(id, act)
+
 
     def __repr__(self):
         return f"UserDB(users={self.users}, favorite_messages={self.favorite_messages})"

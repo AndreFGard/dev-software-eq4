@@ -30,9 +30,9 @@ class User():
         self.schedules.append(sched)
     
     # retorna cada mensagem do historico no formato de Message
-    def getMessageHistory(self) -> List[Message]:
+    def getMessageHistory(self) -> dict[int, Message]:
 
-        return [Message(username= self.username if item.role == "user" else "assistant", content=item.content, id = item.id) for item in self.message_history]
+        return {item.id: Message(username= self.username if item.role == "user" else "assistant", content=item.content, id = item.id) for item in self.message_history}
     
     def getMessageById(self, id:int):
         return next((msg for msg in self.message_history if msg.id == id), None)

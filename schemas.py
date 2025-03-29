@@ -35,8 +35,11 @@ class UserStatus(Enum):
     
 
 
-def activity_to_message(activity: Activity) -> Message:
-    return Message(username="assistant", content=f"Activity: {activity.name}\n{activity.short_description}\n{activity.long_description}", id=activity.id)
+def message_to_gpt_message(message: Message) -> GPTMessage:
+    """
+    Converts a Message object to a GPTMessage object.
+    """
+    return GPTMessage(role= "assistant" if message.username == "assistant" else "user", content=message.content)
 
 from crawl4ai import CrawlResult
 class CrawlResultChunked(CrawlResult):

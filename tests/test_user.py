@@ -45,7 +45,7 @@ class TestUser:
         user = User()
         msg = Message(username="user", content="I want to travel to Paris.")
         user.addMessage(msg)
-        history = user.getMessageHistory()
+        history = list(user.getMessageHistory().values())
         assert len(history) == 2
         assert history[-1].content == "I want to travel to Paris."
         assert history[-1].username == user.username
