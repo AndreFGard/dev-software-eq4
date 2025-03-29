@@ -51,6 +51,9 @@ openai = m.userOpenai(
 @app.on_event("startup")
 async def startup_event():
     await openai.RAG.db._create_tables()
+    from rag.rag import crawler
+    await crawler.start()
+
 
 @app.get("/")
 async def root():

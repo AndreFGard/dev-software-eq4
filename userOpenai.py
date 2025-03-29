@@ -8,7 +8,7 @@ from schemas import *
 from user import User
 
 prompts = {
-    UserStatus.DISCUSSING: 'You are travel planner expert helping a tourist to plan their trip and to find cool stuff to do at places. Dont answer unrelated questions. When an user mention their destination, suggest them the main attractions of that destination  and then ask further questions, like the profile of the traveler/travelers, their interests, etc. If necesssary, call tools to search info on the internet about a destination.',
+    UserStatus.DISCUSSING: 'You are a travel planner helping a tourist. Don\'t answer questions unrelated to this. If necesssary, call tools to search info on the internet about a destination, but only use their result if it\'s relevant',
     UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
     Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
     UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
@@ -132,7 +132,7 @@ class userOpenai(MasterOpenaiInterface):
         choice = ""
         messages=self.getSystemMessage(user) + user.dumpGPTMessages()
 
-        [m.pop("id") for m in messages]
+        [m.pop("id") for m in messages if 'id' in m]
         completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
             messages=messages #type: ignore
@@ -177,33 +177,39 @@ class userOpenai(MasterOpenaiInterface):
         
         # Check if the model wants to call the retrieve_info tool
         if response.tool_calls:
-            # Get all tool calls
-            tool_messages = [response]
+            for i in range(2):
+                # Get all tool calls
+                tool_messages = [response]
+                query, info_results = '', []
+                for tool_call in response.tool_calls:
+                    if tool_call.function.name == "retrieve_info":
+                        # Extract query from the function arguments
+                        function_args = json.loads(tool_call.function.arguments)
+                        query = function_args.get("query")
+                        
+                        # Call retrieve_info with the query
+                        info_results = await self.retrieve_info(query, user)
+                        
+                        # Add tool response to messages
+                        tool_messages.append({
+                            "tool_call_id": tool_call.id, #type: ignore
+                            "role": "tool", 
+                            "name": "retrieve_info", 
+                            "content": str(info_results)
+                        })
+
+                if await self.evaluate_relevance(query,info_results, user=user):
+                    second_completion = await self.openai.chat.completions.create( #type: ignore
+                        model=self.model,
+                        messages=messages + tool_messages  #type: ignore
+                    )
+                    return second_completion.choices[0].message.content
+                print("RAG: TRYING AGAIN")
+
+            #if everything went bonkers
+            print("RAG: gave up")
+            return await self.completion(user)
             
-            for tool_call in response.tool_calls:
-                if tool_call.function.name == "retrieve_info":
-                    # Extract query from the function arguments
-                    function_args = json.loads(tool_call.function.arguments)
-                    query = function_args.get("query")
-                    
-                    # Call retrieve_info with the query
-                    info_results = await self.retrieve_info(query, user)
-                    
-                    # Add tool response to messages
-                    tool_messages.append({
-                        "tool_call_id": tool_call.id, #type: ignore
-                        "role": "tool", 
-                        "name": "retrieve_info", 
-                        "content": str(info_results)
-                    })
-            
-            # Second call with the tool results
-            second_completion = await self.openai.chat.completions.create( #type: ignore
-                model=self.model,
-                messages=messages + tool_messages  #type: ignore
-            )
-            
-            return second_completion.choices[0].message.content
         
         # If no tool was called, return the original response
         return response.content

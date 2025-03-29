@@ -27,18 +27,18 @@ crawler_config = CrawlerRunConfig(
             "ignore_images": True,
             "escape_html": False
         }
-    )
+    ),
 )
+crawler = AsyncWebCrawler(config=BrowserConfig(verbose=False))
+
 
 async def crawl4ai_crawl_many(urls: list,crawler_config = crawler_config) -> list[CrawlResult]:
     
+    result = await crawler.arun_many(
+        urls=urls, config=crawler_config, 
+    )
 
-    async with AsyncWebCrawler(config=BrowserConfig(verbose=False)) as crawler:
-        result = await crawler.arun_many(
-            urls=urls, config=crawler_config, 
-        )
-
-        return result   #type: ignore 
+    return result   #type: ignore 
 
 
 
