@@ -211,3 +211,8 @@ class userOpenai(MasterOpenaiInterface):
     async def make_schedule(self, user: User, activities: list[Activity]):
         sched = await self.schedule_maker.create_cronogram(user, activities)
         return sched
+    
+    async def breakMessageIntoActivities(self, message: GPTMessage, message_history: list[GPTMessage]) -> list[Activity]:
+        # Break the message into activities
+        activities = await self.schedule_maker.build_activity_from_messages(message,message_history)
+        return activities

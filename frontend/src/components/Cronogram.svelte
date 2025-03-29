@@ -58,7 +58,7 @@
 <Dialog.Root>
 
     <Dialog.Trigger class="button">Open Schedule</Dialog.Trigger>
-    <Dialog.Content class="sm:max-w-[70vw] w-[100vw] px-4 shadow">
+    <Dialog.Content class="sm:max-w-[70vw] w-[100vw] px-4  rounded-xl">
         <Dialog.Header>
             <Dialog.Title>{"Schedule"}</Dialog.Title>
         </Dialog.Header>

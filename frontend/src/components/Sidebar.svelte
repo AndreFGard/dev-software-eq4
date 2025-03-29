@@ -47,7 +47,7 @@
                   Edit
                 </Button>
               </Popover.Trigger>
-                <Popover.Content class="w-full" strategy="absolute">
+                <Popover.Content class="w-full rounded-xl" strategy="absolute">
                 <div class="grid gap-2 pb-4">
                   <div class="space-y-2">
                     <h4 class="font-medium leading-none">Customize Activity</h4>

@@ -1,5 +1,9 @@
-from schemas import MasterOpenaiInterface, LLMModelInfo, Message, Schedule, Activity
+from openai import BaseModel
+from schemas import GPTMessage, MasterOpenaiInterface, LLMModelInfo, Message, Schedule, Activity
 from user import User
+
+class ActList(BaseModel):
+  activities: list[Activity]
 class ScheduleMaker(MasterOpenaiInterface):
     """
     Class for generating a travel cronogram using structured output.
@@ -15,7 +19,7 @@ class ScheduleMaker(MasterOpenaiInterface):
         if not cheap_models and main_model:
             self.cheap_models = [main_model]
     
-    def get_system_message(self) -> dict:
+    def get_cronogram_prompt(self) -> dict:
         """Return the system message for cronogram generation"""
         return {
             "role": "system",
@@ -23,6 +27,52 @@ class ScheduleMaker(MasterOpenaiInterface):
             Analyze the conversation history and activities list to create a well-organized daily itinerary.
             Your output must be a valid JSON object with the structure specified in the user's request."""
         }
+
+    def get_activity_building_prompt(self) -> dict:
+        """Return the system message for activity building"""
+        return {
+            "role": "system",
+            "content": """You are an assistant that creates tourism activities based on user messages.
+             Break down the last message you receive into a structured json list of activities.
+             Describe the details of each activity in the long description. Heres the json schema you will follow:
+             {
+              "activities": [
+                {
+                  "long_description": "string (detailed description including important details)",
+                  "name": "string (a short, descriptive name for the activity)",
+                  "short_description": "string (a brief one-line summary)"
+                }
+              ]
+            }"""
+        }
+
+
+    async def build_activity_from_messages(self,  message: GPTMessage, message_history: list[GPTMessage]) -> list[Activity]:
+      system_prompt = self.get_activity_building_prompt()
+      user_prompt = f"""Separate the activities described in THIS message: '{message.content}'"""
+      
+      relevant_hist = [m.model_dump() for m in [GPTMessage(**system_prompt)
+                          ] + message_history[-6:] + [
+                          GPTMessage(role="user", content=message.content)]]
+
+
+
+      for attempt in range(2):
+          try:
+              completion = await self.openai.chat.completions.create( #type: ignore
+                  model=self.model,
+                  messages=relevant_hist, #type: ignore
+                  response_format={"type": "json_object"}
+              )
+              
+              response_content = completion.choices[0].message.content
+              a =  ActList.model_validate_json(str(response_content))
+              return a.activities
+          except Exception as e:
+              print(f"CRONOGRAM: Error generating cronogram: {e}")
+      
+      raise Exception("CRONOGRAM: Failed to generate a valid cronogram response")
+
     
     async def create_cronogram(self, user: User, activities: list[Activity]) -> Schedule:
         """
@@ -75,7 +125,7 @@ The cronogram should logically organize activities, respecting timing and travel
 """
         
         # Combine messages
-        messages = [self.get_system_message()]
+        messages = [self.get_cronogram_prompt()]
         # Add conversation history to provide context
         messages.extend(user.dumpGPTMessages())
         
