@@ -66,6 +66,14 @@ export async function removeFromFavoritesBack(username: string, act:Activity) {
     return response.json() as Promise<Activity[]>;
   }
 
+export async function updateFavorite(username: string, id: number, activity: Activity) {
+    const response = await fetch(`${apiUrl}/updateFavorite`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username, id: id, activity: activity }),
+    });
+    return response.json() as Promise<Activity[]>;
+  }
 
 export async function getSchedule(username:string): Promise<Schedule | null>{
     const response = await fetch(`${apiUrl}/getSchedule?username=${encodeURIComponent(username)}`, {

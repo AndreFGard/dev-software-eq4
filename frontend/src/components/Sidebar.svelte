@@ -2,6 +2,7 @@
   import { writable } from "svelte/store";
   import Login from './Login.svelte'; 
   import type { Activity } from "../api";
+  import { updateFavorite } from "../api";
   export let favorites: Activity[] = [];
   export let removeFromFavorites: (username: string, act: Activity) => void; 
   export let isExpanded = writable(false);
@@ -38,7 +39,7 @@
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-800">{act.name}:</h3>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 ">
             <Popover.Root portal={null}>
               <Popover.Trigger asChild let:builder>
                 <Button builders={[builder]} variant="secondary" >
@@ -47,7 +48,7 @@
                 </Button>
               </Popover.Trigger>
                 <Popover.Content class="w-full" strategy="absolute">
-                <div class="grid gap-2">
+                <div class="grid gap-2 pb-4">
                   <div class="space-y-2">
                     <h4 class="font-medium leading-none">Customize Activity</h4>
                     <p class="text-muted-foreground text-sm">
@@ -69,6 +70,7 @@
                     </div>
                   </div>
                 </div>
+                <Button id="updateActivity" on:click={async () => {favorites = await updateFavorite($username, act.id, act)}} >Save changes</Button>
               </Popover.Content>
             </Popover.Root>
             <Button class="remove-button" size="icon" variant="secondary" on:click={() => removeFromFavorites($username, act)}>

@@ -109,6 +109,16 @@ async def getFavorites(username: str) -> list[Activity]:
 
     return userdb.getActivities(username)
 
+@app.post('/updateFavorite', response_model=List[Activity])
+async def update_favorite(username: str = Body(...), id: int = Body(...), activity: Activity = Body(...)) -> list[Activity]:
+    """Atualiza uma mensagem favorita de um usuário"""
+    try:
+        userdb.updateActivity(username, id, activity)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Failed to update activity")
+
+    return userdb.getActivities(username)
 
 @app.get('/getSchedule',)
 async def getSchedule(username: str) -> Schedule | None:

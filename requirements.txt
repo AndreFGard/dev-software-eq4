@@ -51,7 +51,7 @@ mdurl==0.1.2
 multidict==6.1.0
 nltk==3.9.1
 numpy==2.2.0
-openai==1.57.2
+openai==1.61.0
 packaging==24.2
 pandas==2.2.3
 pillow==10.4.0
@@ -101,3 +101,6 @@ websockets==14.1
 xxhash==3.5.0
 yarl==1.18.3
 zipp==3.21.0
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart

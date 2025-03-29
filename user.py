@@ -52,4 +52,9 @@ class User():
     def dumpActivities(self):
         return {id:act.model_dump() for id,act in self.getActivities().items()}
 
-
+    def updateActivity(self, id, act: Activity):
+        if id in self.__activities__:
+            self.__activities__[id] = act
+        else:
+            raise Exception("Activity not found")
+        return self.getActivities()

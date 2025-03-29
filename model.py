@@ -77,6 +77,9 @@ class UserDB:
             raise ValueError(f"User: {username} was not found in the database")
         return self.users[username].getSchedule(username)
 
+    def updateActivity(self, username:str, id:int, act: Activity):
+        user = self.getUser(username)
+        return user.updateActivity(id, act)
 
     def __repr__(self):
         return f"UserDB(users={self.users}, favorite_messages={self.favorite_messages})"
