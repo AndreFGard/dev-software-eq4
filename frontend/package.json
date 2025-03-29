@@ -28,6 +28,7 @@
     "vite": "^6.0.1"
   },
   "dependencies": {
+    "@lucide/svelte": "^0.485.0",
     "marked": "^15.0.4",
     "svelte-radix": "^2.0.1",
     "svelte-routing": "^2.13.0"
