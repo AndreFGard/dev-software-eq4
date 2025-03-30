@@ -28,6 +28,7 @@
   import Pencil from "@lucide/svelte/icons/pencil";
   import Trash from "@lucide/svelte/icons/trash";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
+  import * as Accordion from "$lib/components/ui/accordion";
 </script>
 
 <div class="box">
@@ -78,7 +79,16 @@
             </Button>
             </div>
           </div>
-        {@html renderMarkdown(act.short_description)}
+        <Accordion.Root>
+          <Accordion.Item value="item-1" class="accordion-item">
+            <Accordion.Trigger class="accordion-trigger text-black">
+              {@html renderMarkdown(act.short_description)}
+            </Accordion.Trigger>
+            <Accordion.Content class="accordion-content text-black">
+              {@html renderMarkdown(act.long_description)}
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion.Root>
       </li>
     {/each}
   </ul>
