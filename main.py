@@ -57,7 +57,8 @@ async def startup_event():
 
 @app.get("/")
 async def root():
-    return "Please access index.html"
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/index.html")
 
 
 from model import UserDB

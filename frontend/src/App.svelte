@@ -5,6 +5,7 @@ import Application from './routes/Application.svelte';
 </script>
 
 <Router>
+  <Route path="/index.html" component={Home} />
   <Route path="/" component={Home} />
   <Route path="/app" component={Application} />
 </Router>
