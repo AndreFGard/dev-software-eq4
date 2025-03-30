@@ -3,8 +3,10 @@ from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, APIRouter
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from database.connection import Database
+from main import db
 
 # JWT Configuration
 SECRET_KEY = "your-secret-key-keep-it-secret" # In production use proper secret management
@@ -17,8 +19,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Token URL (will be created in main.py)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# In-memory storage
-users_db = {}
+# FastAPI router
+router = APIRouter(tags=["authentication"])
 
 class Token(BaseModel):
     access_token: str
@@ -41,13 +43,15 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-def get_user(username: str):
-    if username in users_db:
-        return UserInDB(**users_db[username])
+async def get_user(username: str):
+    result = await db.read_data("users", {"nome" : username})
+    if result:
+        user_data = result[0]
+        return UserInDB(username=user_data.nome, hashed_password=user_data.senha)
     return None
 
-def authenticate_user(username: str, password: str):
-    user = get_user(username)
+async def authenticate_user(username: str, password: str):
+    user = await get_user(username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -80,49 +84,44 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     if token_data.username is None:
         raise credentials_exception
-    user = get_user(username=token_data.username)
+    user = await get_user(username=token_data.username)
     if user is None:
         raise credentials_exception
     return user
 
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
-import auth
-
-from fastapi import APIRouter, Depends, HTTPException, status
-router = APIRouter(tags=["authentication"])
-
+# Endpoints
 @router.post("/register")
-async def register(user: auth.UserCreate):
-    if auth.get_user(user.username):
+async def register(user: UserCreate):
+    if await get_user(user.username):
         raise HTTPException(
             status_code=400,
             detail="Username already registered"
         )
-    hashed_password = auth.get_password_hash(user.password)
-    auth.users_db[user.username] = {
-        "username": user.username,
-        "hashed_password": hashed_password
-    }
+    hashed_password = get_password_hash(user.password)
+    await db.add_data("users", {
+        "nome": user.username,
+        "senha": hashed_password,
+        "status": "ativo",
+        "lista_favoritos": {}
+    })
     return {"message": "User created successfully"}
 
-from fastapi import Depends, HTTPException, status
-@router.post("/token", response_model=auth.Token)
+@router.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = auth.authenticate_user(form_data.username, form_data.password)
+    user = await authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
 # Example of protecting an endpoint
 @router.get("/protected")
-async def protected_route(current_user: auth.UserInDB = Depends(auth.get_current_user)):
+async def protected_route(current_user: UserInDB = Depends(get_current_user)):
     return {"message": f"Hello {current_user.username}"}

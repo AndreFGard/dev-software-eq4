@@ -1,60 +1,96 @@
 from schemas import *
 from typing import List
+from main import db
 
 class User():
     username: str
-    message_history: List[DBMessage]
-    __activities__: dict[int, Activity]
-    status: UserStatus = UserStatus.DISCUSSING
+    shcedules: List[Schedule]
 
-    def __init__(self, username="John Doe", message_history=[]):
+    # refatorado
+    def __init__(self, username="John Doe"):
         self.username = username
-        if not message_history:
-            message_history = [DBMessage(role='assistant', content="Hello! I'm a travel planner. Where would you like to travel today?")]
-
-        self.message_history = message_history
-        self.__activities__ = {}
-        self.status = UserStatus.DISCUSSING
         self.schedules: list[Schedule] = []
 
+    # refatorado
+    async def get_user_id(self):
+        result = await db.read_data("users", {"nome": self.username})
+        return result[0].user_id if result else None
 
-    def addMessage(self, msg: Message):
-        role = "assistant"
-
-        if msg.username != "assistant":
-            role = "user"
-        msg.id = 1 if len(self.message_history) == 0 and msg.id is None else self.message_history[-1].id + 1
-        self.message_history.append(DBMessage(role=role, content=msg.content, id=msg.id))
+    # refatorado
+    async def addMessage(self, msg: Message):
+        await db.add_data("MESSAGES", {
+            "user_id": await self.get_user_id(),
+            "content_message": msg.dict(),
+            "role": msg.username if hasattr(msg, "role") else "user"
+        })
     
+    # refatorado
+    async def getMessageHistory(self):
+        user_id = await self.get_user_id()
+        result = await db.read_data("MESSAGES", {"user_id": user_id}, order_by="content_id")
+        return [msg.content_message for msg in result]
+    
+    # refatorado
+    async def getMessageById(self, id: int):
+        result = await db.read_data("MESSAGES", {"content_id": id})
+        return result[0].content_message if result else None
+
+    # refatorado
+    async def dumpGPTMessages(self):
+        msgs = await self.getMessageHistory()
+        return [{"role": m["role"], "content": m["content"]} for m in msgs]
+    
+    # refatorado
+    async def addActivity(self, msg: Message):
+        user_id = await self.get_user_id()
+        result = await db.read_data("USERS", {"user_id": user_id})
+        if result:
+            current_favorites = result[0].lista_favoritos or []
+            current_favorites.append(msg.dict())
+            await db.update_data("USERS", {"user_id": user_id}, {"lista_favoritos": current_favorites})
+    
+    # refatorado
+    async def getActivities(self):
+        user_id = await self.get_user_id()
+        result = await db.read_data("USERS", {"user_id": user_id})
+        if result:
+            return result[0].lista_favoritos or []
+        return []
+    
+    # refatorado
+    async def dumpActivities(self):
+        acts = await self.getActivities()
+        return {i: act for i, act in enumerate(acts)}
+
+    # refatorado
+    async def updateActivity(self, id: int, act: Activity):
+        user_id = await self.get_user_id()
+        result = await db.read_data("USERS", {"user_id": user_id})
+        if result:
+            activities = result[0].lista_favoritos or []
+            if 0 <= id < len(activities):
+                activities[id] = act.model_dump()
+                await db.update_data("USERS", {"user_id": user_id}, {"lista_favoritos": activities})
+                return activities
+            else:
+                raise Exception("Activity ID inválido")
+
+    # nao refatorado
     def addSchedule(self, sched: Schedule):
         self.schedules.append(sched)
-    
-    # retorna cada mensagem do historico no formato de Message
-    def getMessageHistory(self) -> dict[int, Message]:
 
-        return {item.id: Message(username= self.username if item.role == "user" else "assistant", content=item.content, id = item.id) for item in self.message_history}
-    
-    def getMessageById(self, id:int):
-        return next((msg for msg in self.message_history if msg.id == id), None)
-
-    def dumpGPTMessages(self):
-        return [{"role": m.role, "content": m.content} for m in self.message_history]
-    
-    def addActivity(self, act: Activity):
-        act.id = 1 if act.id is None else act.id
-        self.__activities__[act.id] = act
-        
+    # nao refatorado
     def getSchedule(self, username:str):
         return self.schedules[-1] if len(self.schedules) else None
-    def getActivities(self):
-        return self.__activities__
-    
-    def dumpActivities(self):
-        return {id:act.model_dump() for id,act in self.getActivities().items()}
 
-    def updateActivity(self, id, act: Activity):
-        if id in self.__activities__:
-            self.__activities__[id] = act
-        else:
-            raise Exception("Activity not found")
-        return self.getActivities()
+    @classmethod
+    async def get_or_create(cls, nome):
+        result = await db.read_data("USERS", {"nome": nome})
+        if not result:
+            await db.add_data("USERS", {
+                "nome": nome,
+                "senha": "default",  # ajuste conforme necessário
+                "status": "ativo",
+                "lista_favoritos": []
+            })
+        return cls(nome)

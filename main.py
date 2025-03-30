@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import staticfiles, Body
 from typing import List
+from database.connection import Database
 import model as m
 import uvicorn
 import os
@@ -25,6 +26,9 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_nested_delimiter='__', env_file='.env')
 
+
+db = Database()
+asyncio.run(db.async_main())
 
 settings=Settings()
 app = FastAPI()

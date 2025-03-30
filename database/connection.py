@@ -58,15 +58,17 @@ class Database:
         except Exception as e:
             print(f"❌ Erro ao inserir dados em {target_table}:", e)
 
-    async def read_data(self, target_table: str, conditions: Optional[dict]=None):
+    async def read_data(self, target_table: str, conditions: Optional[dict]=None, order_by=None):
         try:
             async with self.engine.begin() as conn:
                 if conditions:
                     where_clause = " AND ".join([f"{key} = :{key}" for key in conditions])
-                    query = text(f"SELECT * FROM {target_table} WHERE {where_clause}")
+                    order_by_clause = f" ORDER BY {order_by}" if order_by else ""
+                    query = text(f"SELECT * FROM {target_table} WHERE {where_clause} {order_by_clause}")
                     result = await conn.execute(query, conditions)
                 else:
-                    query = text(f"SELECT * FROM {target_table}")
+                    order_by_clause = f" ORDER BY {order_by}" if order_by else ""
+                    query = text(f"SELECT * FROM {target_table} {order_by_clause}")
                     result = await conn.execute(query)
 
                 return result.fetchall()
