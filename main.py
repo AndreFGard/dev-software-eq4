@@ -3,10 +3,9 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
-from database.connection import Database
+from database.session import db
 from schemas import Activity, GPTMessage, LLMModelInfo, Schedule, message_to_gpt_message
 from user import User
-from database.session import db
 import model as m
 import uvicorn
 import os
