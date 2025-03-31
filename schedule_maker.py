@@ -4,30 +4,18 @@ from user import User
 
 class ActList(BaseModel):
   activities: list[Activity]
-class ScheduleMaker(MasterOpenaiInterface):
-    """
-    Class for generating a travel cronogram using structured output.
-    This class takes the conversation history and a list of activities,
-    then uses an LLM to create a structured travel itinerary.
-    """
-    
-    def __init__(self,cheap_models: list[LLMModelInfo] = [], **kwargs):
+
+class ActivityMaker(MasterOpenaiInterface):
+    """Class that generates activities based on a conversation history and activity history"""
+    def __init__(self, cheap_models: list[LLMModelInfo] = [], **kwargs):
         main_model = None
         if not main_model and cheap_models:
-            main_model = cheap_models[0]
+          main_model = cheap_models[0]
         super().__init__(cheap_models=cheap_models, main_model=main_model)
         if not cheap_models and main_model:
-            self.cheap_models = [main_model]
+          self.cheap_models = [main_model]
+      
     
-    def get_cronogram_prompt(self) -> dict:
-        """Return the system message for cronogram generation"""
-        return {
-            "role": "system",
-            "content": """You are a travel planner assistant that creates detailed chronograms.
-            Analyze the conversation history and activities list to create a well-organized daily itinerary.
-            Your output must be a valid JSON object with the structure specified in the user's request."""
-        }
-
     def get_activity_building_prompt(self) -> dict:
         """Return the system message for activity building"""
         return {
@@ -71,6 +59,33 @@ class ScheduleMaker(MasterOpenaiInterface):
       
       raise Exception("CRONOGRAM: Failed to generate a valid cronogram response")
 
+
+
+class ScheduleMaker(MasterOpenaiInterface):
+    """
+    Class for generating a travel cronogram using structured output.
+    This class takes the conversation history and a list of activities,
+    then uses an LLM to create a structured travel itinerary.
+    """
+    
+    def __init__(self,cheap_models: list[LLMModelInfo] = [], **kwargs):
+        main_model = None
+        if not main_model and cheap_models:
+            main_model = cheap_models[0]
+        super().__init__(cheap_models=cheap_models, main_model=main_model)
+        if not cheap_models and main_model:
+            self.cheap_models = [main_model]
+
+        self.activity_maker = ActivityMaker(cheap_models=cheap_models, **kwargs)
+    
+    def get_cronogram_prompt(self) -> dict:
+        """Return the system message for cronogram generation"""
+        return {
+            "role": "system",
+            "content": """You are a travel planner assistant that creates detailed chronograms.
+            Analyze the conversation history and activities list to create a well-organized daily itinerary.
+            Your output must be a valid JSON object with the structure specified in the user's request."""
+        }
     
     async def create_cronogram(self, user: User, activities: list[Activity]) -> Schedule:
         """

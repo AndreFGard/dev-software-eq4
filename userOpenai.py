@@ -220,5 +220,5 @@ class userOpenai(MasterOpenaiInterface):
     
     async def breakMessageIntoActivities(self, message: GPTMessage, message_history: list[GPTMessage]) -> list[Activity]:
         # Break the message into activities
-        activities = await self.schedule_maker.build_activity_from_messages(message,message_history)
+        activities = await self.schedule_maker.activity_maker.build_activity_from_messages(message,message_history)
         return activities
