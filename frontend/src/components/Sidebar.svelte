@@ -11,7 +11,9 @@
   function toggleSidebar() {
     isExpanded.update(value => !value);
   }
-  
+
+  import { fade } from 'svelte/transition';
+  import { flip } from 'svelte/animate';
   import {marked} from "marked";
   marked.use({
       breaks: true,
@@ -35,8 +37,12 @@
   <button class="toggle-button" on:click={toggleSidebar}>☰</button>
   <h2 class="favorites-title">Favorites:</h2>
   <ul class="favorite-list">
-    {#each favorites as act}
-      <li class="message-box">
+    {#each favorites as act, index (act.id)}
+      <li 
+        class="message-box"
+        in:fade={{ delay: index * 100 }} 
+        animate:flip
+      > 
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-800">{act.name}:</h3>
 
