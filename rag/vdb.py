@@ -17,9 +17,22 @@ class VecDb:
     async def _create_tables(self):
         sitesq = """CREATE TABLE sites (timestamp date, url varchar(400), title varchar(255), id serial primary key);"""
 
-        documentsq = """CREATE TABLE documents (content text, site_id int, id serial primary key,
-            last_updated_at TIMESTAMP WITHOUT TIME ZONE,
-            CONSTRAINT fk_sites FOREIGN KEY (site_id) REFERENCES sites(id));"""
+        documentsq = """CREATE TABLE documents (
+                id serial PRIMARY KEY,
+                content text,
+                site_id int,
+                last_updated_at TIMESTAMP WITHOUT TIME ZONE,
+                CONSTRAINT fk_sites FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+            );
+            SELECT vectorize.table(
+            job_name    => 'docs_search',
+            "table"    => 'documents',
+            primary_key => 'id',
+            columns     => ARRAY['id', 'content', 'site_id'],
+            transformer => 'sentence-transformers/all-MiniLM-L6-v2',
+            schedule    => 'realtime'
+            );
+        """
         async with self.engine.begin() as conn:
             try:
                 await conn.execute(text(sitesq))

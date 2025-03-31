@@ -1,5 +1,6 @@
 from schemas import *
 from .chunker import SlidingWindowChunking
+import re
 global summarize_prompt
 summarize_prompt = """You are an expert travel assistant helping users plan their trips by extracting useful information from online sources. You receive a website-based document containing relevant travel-related details about a specific location. Your goal is to generate a concise and informative summary that highlights the most relevant attractions, activities, cultural insights, and practical travel tips.
 
@@ -9,7 +10,8 @@ Instructions:
 
     Prioritize Relevance: Focus on the most significant details for a traveler, omitting overly generic or redundant information.
 
-    Summarize Clearly: Use natural, well-structured sentences that are easy to understand. The summary should be engaging yet concise."""
+    Summarize Clearly: Use natural, well-structured sentences that are easy to understand. The summary should be engaging yet concise. 
+    If you find relevant markdown-syntaxed images and their labels, you might keep them in the relevant parts of the text."""
 class RAGOpenai(MasterOpenaiInterface):
     """Provides LLM utilities for RAG purposes"""
     def __init__(self, cheap_models:list[LLMModelInfo], prompt:str = ''):
@@ -30,7 +32,6 @@ class RAGOpenai(MasterOpenaiInterface):
         ]
 
 
-        
         completion = await self.openai.chat.completions.create( #type: ignore
             model=self.model,
             messages=messages #type: ignore
@@ -50,7 +51,13 @@ class RAGOpenai(MasterOpenaiInterface):
         results = []
         for piece in pieces:
             try:
-                results.append(await self.__summarize_req(piece))
+                summarized = await self.__summarize_req(piece)
+                results.append(summarized)
+                images = re.findall(r'!\[(.*?)\]\((.*?)\)', summarized)
+                if images:
+                    print("Found markdown images:")
+                    for label, link in images:
+                        print(f"- {label}: {link}")
             except Exception as e:
                 print("ERROR SUMMARIZING: " + str(e))
         return '\n'.join(results)
