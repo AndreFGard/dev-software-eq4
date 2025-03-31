@@ -101,7 +101,7 @@ async def addToFavorites(username: str = Body(...), id: int = Body(...)) -> list
     mslist = list(messages.items())
     #
 
-    activities = await openai.schedule_maker.build_activity_from_messages(message_to_gpt_message(msg), 
+    activities = await openai.schedule_maker.activity_maker.build_activity_from_messages(message_to_gpt_message(msg), 
                         [message_to_gpt_message(msg) 
                         for msg in tuple(messages.values())[id-5:min(len(messages), id+5)]])
                         

@@ -11,7 +11,7 @@ Instructions:
     Prioritize Relevance: Focus on the most significant details for a traveler, omitting overly generic or redundant information.
 
     Summarize Clearly: Use natural, well-structured sentences that are easy to understand. The summary should be engaging yet concise. 
-    If you find relevant markdown-syntaxed images and their labels, you might keep them in the relevant parts of the text."""
+    If you find relevant markdown-syntaxed images and their labels, you will keep them and their links in the relevant parts of the text.."""
 class RAGOpenai(MasterOpenaiInterface):
     """Provides LLM utilities for RAG purposes"""
     def __init__(self, cheap_models:list[LLMModelInfo], prompt:str = ''):
