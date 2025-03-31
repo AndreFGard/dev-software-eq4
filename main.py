@@ -1,10 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body, staticfiles
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from fastapi import staticfiles, Body
 from typing import List
 from database.connection import Database
+from schemas import Activity, GPTMessage, LLMModelInfo, Schedule, message_to_gpt_message
+from user import User
 import model as m
 import uvicorn
 import os
@@ -16,8 +17,6 @@ import user
 if ("fastapi" not in  sys.argv[0] and "uvicorn" not in sys.argv[0]): 
     print("\n\t🦄🦄🦄🦄🦄🦄🦄🦄\033[1;31m Please run this file with 'fastapi run dev'")
 
-
-from schemas import Activity, GPTMessage, LLMModelInfo, Schedule, message_to_gpt_message
 class Settings(BaseSettings):
     OPENAI_KEY: str = ''
     BRAVE_KEY: str = ''
@@ -74,70 +73,60 @@ async def addMessage(msg: m.Message):
     de uma IA, adiciona no historico de mensagens
     e retorna o historico de mensagens"""
 
-    username = msg.username
-    user = userdb.getUser(username)
-    user.addMessage(msg)
+    user = await User.get_or_create(msg.username)
+    await user.addMessage(msg)
     reply = await openai.reply(user)
-    user.addMessage(m.Message(username="assistant", content=reply ))
-    messages =list(user.getMessageHistory().values())
-
-    return messages
-
-addData = addMessage 
+    await user.addMessage(m.Message(username="assistant", content=reply))
+    return await user.getMessageHistory()
 
 @app.get("/getMessages", response_model=List[m.Message])
 async def getMessages(username:str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
 
-    return list(userdb.getMessageHistory(username).values())
+    user = await User.get_or_create(username)
+    return await user.getMessageHistory()
 
-import bisect
 @app.post('/addToFavorites', response_model=List[Activity])
 async def addToFavorites(username: str = Body(...), id: int = Body(...)) -> list[Activity]:
     """Adiciona uma mensagem aos favoritos de um usuário"""
-    messages =  userdb.getMessageHistory(username)
-    msg = messages.get(id)
-    if not msg:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
-    mslist = list(messages.items())
-    #
 
-    activities = await openai.schedule_maker.build_activity_from_messages(message_to_gpt_message(msg), 
-                        [message_to_gpt_message(msg) 
-                        for msg in tuple(messages.values())[id-5:min(len(messages), id+5)]])
-                        
-    [userdb.addActivitiy(username, act) for act in activities]
-    return activities
+    user = await User.get_or_create(username)
+    msg = await user.getMessageById(id)
+    if msg is None:
+        raise HTTPException(status_code=404, detail="Message not found")
+    await user.addActivity(msg)
+    return await user.getActivities()
 
 @app.post('/removeFavorite', response_model=List[Activity])
 async def remove_favorite(username: str = Body(...), id: int = Body(...)) ->list[Activity]:
     """Remove uma mensagem dos favoritos de um usuário"""
     try:
-        userdb.deleteAcitivty(username, id)
+        user = await User.get_or_create(username)
+        await user.removeActivity(id)
+        return await user.getActivities()
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to remove activity")
-
-    return  userdb.getActivities(username)
 
 @app.get('/getFavorites', response_model=List[Activity])
 async def getFavorites(username: str) -> list[Activity]:
     """Retorna as mensagens favoritas de um usuário"""
 
-    return userdb.getActivities(username)
+    user = await User.get_or_create(username)
+    return await user.getActivities()
+
 
 @app.post('/updateFavorite', response_model=List[Activity])
 async def update_favorite(username: str = Body(...), id: int = Body(...), activity: Activity = Body(...)) -> list[Activity]:
     """Atualiza uma mensagem favorita de um usuário"""
     try:
-        userdb.updateActivity(username, id, activity)
+        user = await User.get_or_create(username)
+        await user.updateActivity(id, activity)
+        return await user.getActivities()
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to update activity")
-
-    return userdb.getActivities(username)
 
 @app.get('/getSchedule',)
 async def getSchedule(username: str) -> Schedule | None:

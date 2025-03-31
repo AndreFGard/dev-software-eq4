@@ -24,7 +24,7 @@ class User():
             "role": msg.username if hasattr(msg, "role") else "user"
         })
     
-    # refatorado
+    # refatorado -> talvez aplicar validação usando pydantic
     async def getMessageHistory(self):
         user_id = await self.get_user_id()
         result = await db.read_data("MESSAGES", {"user_id": user_id}, order_by="content_id")
@@ -40,7 +40,7 @@ class User():
         msgs = await self.getMessageHistory()
         return [{"role": m["role"], "content": m["content"]} for m in msgs]
     
-    # refatorado
+    # refatorado -> talvez aplicar validação usando pydantic
     async def addActivity(self, msg: Message):
         user_id = await self.get_user_id()
         result = await db.read_data("USERS", {"user_id": user_id})
@@ -49,7 +49,7 @@ class User():
             current_favorites.append(msg.dict())
             await db.update_data("USERS", {"user_id": user_id}, {"lista_favoritos": current_favorites})
     
-    # refatorado
+    # refatorado -> talvez aplicar validação usando pydantic
     async def getActivities(self):
         user_id = await self.get_user_id()
         result = await db.read_data("USERS", {"user_id": user_id})
@@ -74,6 +74,17 @@ class User():
                 return activities
             else:
                 raise Exception("Activity ID inválido")
+            
+    async def removeActivity(self, id: int):
+        user_id = await self.get_user_id()
+        result = await db.read_data("USERS", {"user_id": user_id})
+        if result:
+            activities = result[0].lista_favoritos or []
+            if 0 <= id < len(activities):
+                activities.pop(id)
+                await db.update_data("USERS", {"user_id": user_id}, {"lista_favoritos": activities})
+            else:
+                raise Exception("ID inválido")
 
     # nao refatorado
     def addSchedule(self, sched: Schedule):
