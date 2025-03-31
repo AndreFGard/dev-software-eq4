@@ -98,7 +98,7 @@
                 <LoaderCircle class="animate-spin h-4 w-4 mr-2" />
                 Loading
             {:else}
-                {schedule === null ? 'Re':""}fresh
+                {schedule === null ? 'Rec':"C"}reate schedule
             {/if}            
         </button>
         <button onclick={async () => await getScheduleView()} class="button is-light {loadingSchedule ? 'grayscale' : ''}">
