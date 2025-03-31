@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     BRAVE_KEY: str = ''
     TEMBO_PSQL_URL: str = ''
     HIGH_LIMIT_MODELS: list[LLMModelInfo] = []
+    DATABASE_URL: str = ''
 
     model_config = SettingsConfigDict(env_nested_delimiter='__', env_file='.env')
 
