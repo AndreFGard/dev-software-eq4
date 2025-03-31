@@ -1,6 +1,6 @@
 from schemas import *
 from typing import List
-from main import db
+from database.session import db
 
 class User():
     username: str

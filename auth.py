@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from database.connection import Database
-from main import db
+from database.session import db
 
 # JWT Configuration
 SECRET_KEY = "your-secret-key-keep-it-secret" # In production use proper secret management
