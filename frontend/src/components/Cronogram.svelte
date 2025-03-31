@@ -108,12 +108,6 @@
             {:else}
                 Refresh
             {/if}
-            {#if loadingSchedule}
-                <LoaderCircle class="animate-spin h-4 w-4 mr-2" />
-                Loading
-            {:else}
-                Recreate
-            {/if}
         </button>
     </Dialog.Footer>    
     </Dialog.Content>
