@@ -27,8 +27,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_nested_delimiter='__', env_file='.env')
 
 
-asyncio.run(db.async_main())
-
 settings=Settings()
 app = FastAPI()
 
@@ -53,6 +51,7 @@ openai = m.userOpenai(
 
 @app.on_event("startup")
 async def startup_event():
+    await db.async_main()
     await openai.RAG.db._create_tables()
     from rag.rag import crawler
     await crawler.start()
