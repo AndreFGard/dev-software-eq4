@@ -8,11 +8,30 @@
 	export let handleAdd: () => void;
 	import Cronogram from "./Cronogram.svelte";
 	let isLoading = false;
+
 	async function handleSend() {
 	  isLoading = true;
 	  await handleAdd();
 	  isLoading = false;
 	}
+
+
+	import { afterUpdate } from 'svelte'; 
+	let messagesList: HTMLUListElement;
+	function scrollToBottom() {
+		if (messagesList) {
+		messagesList.scrollTo({
+			top: messagesList.scrollHeight,
+			behavior: 'smooth'
+		});
+    }
+  }
+
+	// Trigger scroll after updates
+	afterUpdate(() => {
+		scrollToBottom();
+	});
+	
 	marked.use({
 		breaks: true,
 		gfm: true,
@@ -181,7 +200,7 @@
 		<Cronogram></Cronogram>
 	  </div>
 	</div>
-	<ul class="messages-list">
+	<ul class="messages-list" bind:this={messagesList}>
 	  {#each messages as msg}
 		{#if msg === null}
 			<strong>assistant:</strong> 
