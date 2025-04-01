@@ -65,7 +65,7 @@
                   <div class="grid gap-2">
                     <div class="grid grid-cols-4 items-center gap-2">
                       <Label for="actName">Name</Label>
-                      <Textarea id="actName" value="{act.name}" class="col-span-3 h-6" />
+                      <Textarea id="actName" bind:value={act.name} class="col-span-3 h-6" />
                     </div>
                     <div class="grid grid-cols-4 items-center gap-2">
                       <Label for="shortDescription">Short Description</Label>
