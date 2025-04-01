@@ -23,9 +23,9 @@ async def answerDummy(*args, **kwargs):
 
 
 
-from rag.rag import RAG
-from rag.rag_openai import RAGOpenai
-from schedule_maker import ScheduleMaker
+from .rag.rag import RAG
+from .rag.rag_openai import RAGOpenai
+from .schedule_maker import ScheduleMaker
 class userOpenai(MasterOpenaiInterface):
     """Essa classe proverÁ (quando isso for implementado) 
     as respostas de um chatbot.

@@ -6,8 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
 from jose import jwt
-import auth
-from auth import UserCreate, UserInDB, TokenData
+import services.auth as auth
+from services.auth import UserCreate, UserInDB, TokenData
 from fastapi import HTTPException
 
 class TestAuth:

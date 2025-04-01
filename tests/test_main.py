@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pytest
 from fastapi.testclient import TestClient
 from main import app
-from model import Message, Activity  # Ensure Activity matches the API response structure
+from services.model import Message, Activity  # Ensure Activity matches the API response structure
 from schemas import Schedule
 
 client = TestClient(app)

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import staticfiles, Body
 from typing import List
-import model as m
+from services import *
 import uvicorn
 import os
 import sys
@@ -36,7 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+import services.model as m
 main_model = LLMModelInfo(url="https://api.groq.com/openai/v1",
                 model="gemma2-9b-it",
                 rate_limit=8000,
@@ -51,7 +51,7 @@ openai = m.userOpenai(
 @app.on_event("startup")
 async def startup_event():
     await openai.RAG.db._create_tables()
-    from rag.rag import crawler
+    from services.rag.rag import crawler
     await crawler.start()
 
 
@@ -61,7 +61,7 @@ async def root():
     return RedirectResponse(url="/index.html")
 
 
-from model import UserDB
+
 userdb = UserDB()
 
 @app.post("/addMessage")
@@ -87,8 +87,11 @@ addData = addMessage
 async def getMessages(username:str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
-
-    return list(userdb.getMessageHistory(username).values())
+    l = [m.Message(username="assistant", content="Hello! I'm a travel planner. Where would you like to travel today?")]
+    try:
+        return list(userdb.getMessageHistory(username).values() or l)
+    except:
+        return l
 
 import bisect
 @app.post('/addToFavorites', response_model=List[Activity])

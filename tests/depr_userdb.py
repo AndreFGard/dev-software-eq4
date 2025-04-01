@@ -1,5 +1,5 @@
 import pytest
-from model import UserDB
+from services.model import UserDB
 from schemas import Message, Activity, Schedule, DayDetail, ActivityDetail
 
 def test_user_creation():

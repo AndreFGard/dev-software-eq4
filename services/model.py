@@ -9,7 +9,7 @@ import time
 import asyncio as aio
 
 from schemas import *
-from userOpenai import *
+from .userOpenai import *
 from user import User
 
 # -----------------------------
