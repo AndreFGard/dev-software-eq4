@@ -72,11 +72,12 @@ async def addMessage(msg: m.Message):
     e retorna o historico de mensagens"""
 
     username = msg.username
-    user = userdb.getUser(username)
-    user.addMessage(msg)
-    reply = await openai.reply(user)
-    user.addMessage(m.Message(username="assistant", content=reply ))
-    messages =list(user.getMessageHistory().values())
+
+    userdb.addMessage(username, msg)
+    GPTMessageHistory = userdb.getGPTMessageHistory(username)
+    reply = await openai.reply(GPTMessageHistory)
+    userdb.addMessage(username, m.Message(username="assistant", content=reply ))
+    messages =list(userdb.getMessageHistory(username).values())
 
     return messages
 
@@ -105,14 +106,14 @@ async def addToFavorites(username: str = Body(...), id: int = Body(...)) -> list
                         [message_to_gpt_message(msg) 
                         for msg in tuple(messages.values())[id-5:min(len(messages), id+5)]])
                         
-    [userdb.addActivitiy(username, act) for act in activities]
+    [userdb.addActivity(username, act) for act in activities]
     return activities
 
 @app.post('/removeFavorite', response_model=List[Activity])
 async def remove_favorite(username: str = Body(...), id: int = Body(...)) ->list[Activity]:
     """Remove uma mensagem dos favoritos de um usuário"""
     try:
-        userdb.deleteAcitivty(username, id)
+        userdb.deleteActivity(username, id)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to remove activity")
@@ -150,7 +151,8 @@ async def getSchedule(username: str) -> Schedule | None:
 @app.post('/createSchedule', response_model=Schedule)
 async def makeSchedule(username: str):
     try:
-        sched = await openai.make_schedule(userdb.getUser(username), userdb.getActivities(username))
+        GPTMessageHistory = userdb.getGPTMessageHistory(username)
+        sched = await openai.make_schedule(GPTMessageHistory, userdb.getActivities(username))
         if sched:
             userdb.addSchedule(username, sched)
         return sched
