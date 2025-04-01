@@ -5,10 +5,10 @@ from openai import AsyncOpenAI
 
 import json
 from schemas import *
-from user import User
+
 
 prompts = {
-    UserStatus.DISCUSSING: 'You are a travel planner helping a tourist. Don\'t answer questions unrelated to this. If necesssary, call tools to search info on the internet about a destination, but only use their result if it\'s relevant',
+    UserStatus.DISCUSSING: 'You are a travel planner helping a tourist. Don\'t answer questions unrelated to this. If necesssary, call tools to search info on the internet about a destination, but only use their result if it\'s relevant. Upon calling the search and geting results, always present relevant info in a nicely formatted form.',
     UserStatus.SUMMARIZING_ACTIVITIES: """You are summarizing the chosen activities below for the tourist.
     Please summarize them as a list of activities, each with values for name, short_description, and long_description.""",
     UserStatus.MODIFYING_ACTIVITY: 'You are modifying an activity for the tourist.'
@@ -23,9 +23,9 @@ async def answerDummy(*args, **kwargs):
 
 
 
-from rag.rag import RAG
-from rag.rag_openai import RAGOpenai
-from schedule_maker import ScheduleMaker
+from .rag.rag import RAG
+from .rag.rag_openai import RAGOpenai
+from .schedule_maker import ScheduleMaker
 class userOpenai(MasterOpenaiInterface):
     """Essa classe proverÁ (quando isso for implementado) 
     as respostas de um chatbot.
@@ -43,16 +43,13 @@ class userOpenai(MasterOpenaiInterface):
 
 
 
-    def getSystemMessage(self, user: User):
-        return [GPTMessage(role='system',content=prompts[user.status]).model_dump()]
+    def getSystemMessage(self):
+        return [GPTMessage(role='system',content=prompts[UserStatus.DISCUSSING]).model_dump()]
 
-    async def reply(self, user:User):
-        if self.openai:
-            return await self.completion_with_tool(user) or ""
-        else: 
-            return await answerDummy(user) or ""
+    async def reply(self, GPTMessageHistory: list[GPTMessage]) -> str:
+        return await self.completion_with_tool(GPTMessageHistory) or "couldnt build openai object"
 
-    async def retrieve_info(self, query: str, user : User) -> list[str]:
+    async def retrieve_info(self, query: str, GPTMessageHistory: list[GPTMessage]) -> list[str]:
         """
         Searches for information using a two-step process:
         1. First checks the existing database for relevant information
@@ -64,7 +61,7 @@ class userOpenai(MasterOpenaiInterface):
         # If we don't have any results, immediately use web search
         
         # Otherwise, evaluate the relevance of the database results
-        is_relevant = await self.evaluate_relevance(query, db_results, user)
+        is_relevant = await self.evaluate_relevance(query, db_results, GPTMessageHistory=GPTMessageHistory)
         
         # If the results are not relevant, search the web
         if not is_relevant:
@@ -75,7 +72,7 @@ class userOpenai(MasterOpenaiInterface):
         # Return the database results if they're relevant
         return db_results
 
-    async def evaluate_relevance(self, query: str, results: list[str], user : User) -> bool:
+    async def evaluate_relevance(self, query: str, results: list[str], GPTMessageHistory: list[GPTMessage]) -> bool:
         if 'groq' not in self.base_url:
             print ("Structured output is likely to not work, as it's not a Groq hosted model")
 
@@ -103,7 +100,7 @@ class userOpenai(MasterOpenaiInterface):
             """).model_dump(),
         ]
 
-        messages += user.dumpGPTMessages()[:-4]
+        messages += [gptm.model_dump() for gptm in GPTMessageHistory][:-4]
         messages.append(GPTMessage(role="user", content=evaluation_prompt).model_dump())
         
         for message in messages:
@@ -126,11 +123,11 @@ class userOpenai(MasterOpenaiInterface):
             
         return False
 
-    async def completion(self, user: User):
+    async def completion(self, GPTMessageHistory: list[GPTMessage]):
         #make the retrieved info placeholder tool available to gpt, detect if it was called (the gpt is already instructured
         # to only call it if needed) and then try again while providing the returned data
         choice = ""
-        messages=self.getSystemMessage(user) + user.dumpGPTMessages()
+        messages = self.getSystemMessage() + [gptm.model_dump() for gptm in GPTMessageHistory]
 
         [m.pop("id") for m in messages if 'id' in m]
         completion = await self.openai.chat.completions.create( #type: ignore
@@ -140,7 +137,7 @@ class userOpenai(MasterOpenaiInterface):
         return completion.choices[0].message.content
     
 
-    async def completion_with_tool(self, user: User):
+    async def completion_with_tool(self, GPTMessageHistory: list[GPTMessage]):
         # Define the retrieve_info tool
         tools = [
             {
@@ -162,7 +159,7 @@ class userOpenai(MasterOpenaiInterface):
             }
         ]
         
-        messages = self.getSystemMessage(user) + user.dumpGPTMessages()
+        messages = self.getSystemMessage() + [gptm.model_dump() for gptm in GPTMessageHistory]
 
         
         # First call with tool definition
@@ -188,7 +185,7 @@ class userOpenai(MasterOpenaiInterface):
                         query = function_args.get("query")
                         
                         # Call retrieve_info with the query
-                        info_results = await self.retrieve_info(query, user)
+                        info_results = await self.retrieve_info(query, GPTMessageHistory)
                         
                         # Add tool response to messages
                         tool_messages.append({
@@ -198,7 +195,7 @@ class userOpenai(MasterOpenaiInterface):
                             "content": str(info_results)
                         })
 
-                if await self.evaluate_relevance(query,info_results, user=user):
+                if await self.evaluate_relevance(query,info_results, GPTMessageHistory):
                     second_completion = await self.openai.chat.completions.create( #type: ignore
                         model=self.model,
                         messages=messages + tool_messages  #type: ignore
@@ -208,17 +205,17 @@ class userOpenai(MasterOpenaiInterface):
 
             #if everything went bonkers
             print("RAG: gave up")
-            return await self.completion(user)
+            return await self.completion(GPTMessageHistory)
             
         
         # If no tool was called, return the original response
         return response.content
 
-    async def make_schedule(self, user: User, activities: list[Activity]):
-        sched = await self.schedule_maker.create_cronogram(user, activities)
+    async def make_schedule(self, GPTMessageHistory:list[GPTMessage], activities: list[Activity]):
+        sched = await self.schedule_maker.create_cronogram(GPTMessageHistory, activities)
         return sched
     
     async def breakMessageIntoActivities(self, message: GPTMessage, message_history: list[GPTMessage]) -> list[Activity]:
         # Break the message into activities
-        activities = await self.schedule_maker.build_activity_from_messages(message,message_history)
+        activities = await self.schedule_maker.activity_maker.build_activity_from_messages(message,message_history)
         return activities

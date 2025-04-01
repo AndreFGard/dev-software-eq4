@@ -27,6 +27,7 @@ class Activity(BaseModel):
     short_description: str
     long_description: str
     id: int | None = None
+    image_url: str | None = None
 
 class UserStatus(Enum):
     DISCUSSING = 'discussing'

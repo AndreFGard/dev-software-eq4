@@ -24,7 +24,6 @@ crawler_config = CrawlerRunConfig(
         content_filter=prune_filter,
         options={
             "ignore_links":True,
-            "ignore_images": True,
             "escape_html": False
         }
     ),
@@ -74,13 +73,17 @@ class RAG:
         Asynchronously processes a CrawlResult object to generate markdown content,
         summarize it if necessary, and split it into chunks.
         """
-        
+
+        sitemd = site.markdown
+        import re
         #apply pruning filter to get rid of useless content such as tags
+        images = re.findall(r'!\[(.*?)\]\((.*?)\)', str(sitemd))
         oldmd = str(crawler_config.markdown_generator.generate_markdown(str(site.cleaned_html)).fit_markdown or site.markdown)
         md = oldmd
+        images = "\n".join(f"![{label}]({url})" for label,url in images)
         if isinstance(self.llm.rate_limit, int) and (len(oldmd) < self.llm.rate_limit) and self.llm.openai:
-            md = await self.llm.summarize(oldmd)
-            print(f'PRUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(site.markdown)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
+            md = await self.llm.summarize(f"{oldmd}\n\n IMAGES FOUND IN SITE: {images}")
+            print(f'PRUNE + SUMMARIZING REDUCTION: {(100*len((oldmd))/len(sitemd)):.1f}%-{(100*len(md)/len(oldmd)):.1f}%') #type: ignore
         else:
             print("ERROR SUMMARIZING: TOO LONG")
             return None

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import staticfiles, Body
 from typing import List
-import model as m
+from services import *
 import uvicorn
 import os
 import sys
@@ -36,7 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+import services.model as m
 main_model = LLMModelInfo(url="https://api.groq.com/openai/v1",
                 model="gemma2-9b-it",
                 rate_limit=8000,
@@ -51,7 +51,7 @@ openai = m.userOpenai(
 @app.on_event("startup")
 async def startup_event():
     await openai.RAG.db._create_tables()
-    from rag.rag import crawler
+    from services.rag.rag import crawler
     await crawler.start()
 
 
@@ -61,7 +61,7 @@ async def root():
     return RedirectResponse(url="/index.html")
 
 
-from model import UserDB
+
 userdb = UserDB()
 
 @app.post("/addMessage")
@@ -72,11 +72,12 @@ async def addMessage(msg: m.Message):
     e retorna o historico de mensagens"""
 
     username = msg.username
-    user = userdb.getUser(username)
-    user.addMessage(msg)
-    reply = await openai.reply(user)
-    user.addMessage(m.Message(username="assistant", content=reply ))
-    messages =list(user.getMessageHistory().values())
+
+    userdb.addMessage(username, msg)
+    GPTMessageHistory = userdb.getGPTMessageHistory(username)
+    reply = await openai.reply(GPTMessageHistory)
+    userdb.addMessage(username, m.Message(username="assistant", content=reply ))
+    messages =list(userdb.getMessageHistory(username).values())
 
     return messages
 
@@ -86,8 +87,11 @@ addData = addMessage
 async def getMessages(username:str) -> List[m.Message]:
     """"retorna as mensagens relativas a um usuário (mesmo que seja o usuario padrão)
     Essa função devera receber o nome de usuario em um campo separado do json"""
-
-    return list(userdb.getMessageHistory(username).values())
+    l = [m.Message(username="assistant", content="Hello! I'm a travel planner. Where would you like to travel today?")]
+    try:
+        return list(userdb.getMessageHistory(username).values() or l)
+    except:
+        return l
 
 import bisect
 @app.post('/addToFavorites', response_model=List[Activity])
@@ -101,18 +105,18 @@ async def addToFavorites(username: str = Body(...), id: int = Body(...)) -> list
     mslist = list(messages.items())
     #
 
-    activities = await openai.schedule_maker.build_activity_from_messages(message_to_gpt_message(msg), 
+    activities = await openai.schedule_maker.activity_maker.build_activity_from_messages(message_to_gpt_message(msg), 
                         [message_to_gpt_message(msg) 
                         for msg in tuple(messages.values())[id-5:min(len(messages), id+5)]])
                         
-    [userdb.addActivitiy(username, act) for act in activities]
+    [userdb.addActivity(username, act) for act in activities]
     return activities
 
 @app.post('/removeFavorite', response_model=List[Activity])
 async def remove_favorite(username: str = Body(...), id: int = Body(...)) ->list[Activity]:
     """Remove uma mensagem dos favoritos de um usuário"""
     try:
-        userdb.deleteAcitivty(username, id)
+        userdb.deleteActivity(username, id)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to remove activity")
@@ -150,7 +154,8 @@ async def getSchedule(username: str) -> Schedule | None:
 @app.post('/createSchedule', response_model=Schedule)
 async def makeSchedule(username: str):
     try:
-        sched = await openai.make_schedule(userdb.getUser(username), userdb.getActivities(username))
+        GPTMessageHistory = userdb.getGPTMessageHistory(username)
+        sched = await openai.make_schedule(GPTMessageHistory, userdb.getActivities(username))
         if sched:
             userdb.addSchedule(username, sched)
         return sched

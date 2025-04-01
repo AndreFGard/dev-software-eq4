@@ -1,33 +1,20 @@
 from openai import BaseModel
 from schemas import GPTMessage, MasterOpenaiInterface, LLMModelInfo, Message, Schedule, Activity
-from user import User
 
 class ActList(BaseModel):
   activities: list[Activity]
-class ScheduleMaker(MasterOpenaiInterface):
-    """
-    Class for generating a travel cronogram using structured output.
-    This class takes the conversation history and a list of activities,
-    then uses an LLM to create a structured travel itinerary.
-    """
-    
-    def __init__(self,cheap_models: list[LLMModelInfo] = [], **kwargs):
+
+class ActivityMaker(MasterOpenaiInterface):
+    """Class that generates activities based on a conversation history and activity history"""
+    def __init__(self, cheap_models: list[LLMModelInfo] = [], **kwargs):
         main_model = None
         if not main_model and cheap_models:
-            main_model = cheap_models[0]
+          main_model = cheap_models[0]
         super().__init__(cheap_models=cheap_models, main_model=main_model)
         if not cheap_models and main_model:
-            self.cheap_models = [main_model]
+          self.cheap_models = [main_model]
+      
     
-    def get_cronogram_prompt(self) -> dict:
-        """Return the system message for cronogram generation"""
-        return {
-            "role": "system",
-            "content": """You are a travel planner assistant that creates detailed chronograms.
-            Analyze the conversation history and activities list to create a well-organized daily itinerary.
-            Your output must be a valid JSON object with the structure specified in the user's request."""
-        }
-
     def get_activity_building_prompt(self) -> dict:
         """Return the system message for activity building"""
         return {
@@ -47,12 +34,12 @@ class ScheduleMaker(MasterOpenaiInterface):
         }
 
 
-    async def build_activity_from_messages(self,  message: GPTMessage, message_history: list[GPTMessage]) -> list[Activity]:
+    async def build_activity_from_messages(self,  message: GPTMessage, GPTMessageHistory: list[GPTMessage]) -> list[Activity]:
       system_prompt = self.get_activity_building_prompt()
       user_prompt = f"""Separate the activities described in THIS message: '{message.content}'"""
       
       relevant_hist = [m.model_dump() for m in [GPTMessage(**system_prompt)
-                          ] + message_history[-6:] + [
+                          ] + GPTMessageHistory[-6:] + [
                           GPTMessage(role="user", content=message.content)]]
 
       for attempt in range(2):
@@ -71,8 +58,35 @@ class ScheduleMaker(MasterOpenaiInterface):
       
       raise Exception("CRONOGRAM: Failed to generate a valid cronogram response")
 
+
+
+class ScheduleMaker(MasterOpenaiInterface):
+    """
+    Class for generating a travel cronogram using structured output.
+    This class takes the conversation history and a list of activities,
+    then uses an LLM to create a structured travel itinerary.
+    """
     
-    async def create_cronogram(self, user: User, activities: list[Activity]) -> Schedule:
+    def __init__(self,cheap_models: list[LLMModelInfo] = [], **kwargs):
+        main_model = None
+        if not main_model and cheap_models:
+            main_model = cheap_models[0]
+        super().__init__(cheap_models=cheap_models, main_model=main_model)
+        if not cheap_models and main_model:
+            self.cheap_models = [main_model]
+
+        self.activity_maker = ActivityMaker(cheap_models=cheap_models, **kwargs)
+    
+    def get_cronogram_prompt(self) -> dict:
+        """Return the system message for cronogram generation"""
+        return {
+            "role": "system",
+            "content": """You are a travel planner assistant that creates detailed chronograms.
+            Analyze the conversation history and activities list to create a well-organized daily itinerary.
+            Your output must be a valid JSON object with the structure specified in the user's request."""
+        }
+    
+    async def create_cronogram(self, GPTMessageHistory:list[GPTMessage], activities: list[Activity]) -> Schedule:
         """
         Creates a structured travel cronogram based on the user's conversation history
         and selected activities.
@@ -125,7 +139,7 @@ The cronogram should logically organize activities, respecting timing and travel
         # Combine messages
         messages = [self.get_cronogram_prompt()]
         # Add conversation history to provide context
-        messages.extend(user.dumpGPTMessages())
+        messages.extend([gptm.model_dump() for gptm in GPTMessageHistory])
         
         
         # Add the final user prompt requesting the cronogram

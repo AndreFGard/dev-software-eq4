@@ -11,7 +11,9 @@
   function toggleSidebar() {
     isExpanded.update(value => !value);
   }
-  
+
+  import { fade } from 'svelte/transition';
+  import { flip } from 'svelte/animate';
   import {marked} from "marked";
   marked.use({
       breaks: true,
@@ -35,8 +37,12 @@
   <button class="toggle-button" on:click={toggleSidebar}>☰</button>
   <h2 class="favorites-title">Favorites:</h2>
   <ul class="favorite-list">
-    {#each favorites as act}
-      <li class="message-box">
+    {#each favorites as act, index (act.id)}
+      <li 
+        class="message-box"
+        in:fade={{ delay: index * 140 }} 
+        animate:flip
+      > 
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-800">{act.name}:</h3>
 
@@ -59,15 +65,15 @@
                   <div class="grid gap-2">
                     <div class="grid grid-cols-4 items-center gap-2">
                       <Label for="actName">Name</Label>
-                      <Textarea id="actName" value="{act.name}" class="col-span-3 h-8" />
+                      <Textarea id="actName" value="{act.name}" class="col-span-3 h-6" />
                     </div>
                     <div class="grid grid-cols-4 items-center gap-2">
                       <Label for="shortDescription">Short Description</Label>
-                      <Textarea id="shortDescription" bind:value={act.short_description} class="col-span-3 h-8"/>
+                      <Textarea id="shortDescription" bind:value={act.short_description} class="col-span-3 h-4"/>
                     </div>
                     <div class="grid grid-cols-4 items-center gap-2">
                       <Label for="longDescription">Long Description</Label>
-                      <Textarea id="longDescription" bind:value={act.long_description} class="col-span-3 h-8" />
+                      <Textarea id="longDescription" bind:value={act.long_description} class="col-span-3 h-4" />
                     </div>
                   </div>
                 </div>
@@ -81,11 +87,11 @@
           </div>
         <Accordion.Root>
           <Accordion.Item value="item-1" class="accordion-item">
-            <Accordion.Trigger class="accordion-trigger text-black">
-              {@html renderMarkdown(act.short_description)}
+            <Accordion.Trigger class="accordion-trigger ">
+              <span class="text-md">{@html renderMarkdown(act.short_description)}</span>
             </Accordion.Trigger>
-            <Accordion.Content class="accordion-content text-black">
-              {@html renderMarkdown(act.long_description)}
+            <Accordion.Content class="accordion-content ">
+              <span class="text-sm">{@html renderMarkdown(act.long_description)}</span>
             </Accordion.Content>
           </Accordion.Item>
         </Accordion.Root>
@@ -148,20 +154,6 @@
     background-color: rgba(0, 0, 0, 0.05);
   }
 
-  .remove-button {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    color: #75a9c6;
-  }
-
-  .remove-button:hover {
-    color: rgb(209, 18, 18);
-  }
 
   .message-box {
     position: relative;
@@ -191,21 +183,6 @@
     background: var(--button-active);
   }
   
-  .login-register-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
-  .button {
-    width: 100%; 
-    border-radius: 15px;
-    font-size: 1.0rem;
-    padding: 12px 24px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
   @media (max-width: 768px) {
     .button {
       width: auto; 
