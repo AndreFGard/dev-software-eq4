@@ -3,7 +3,9 @@ export const apiUrl= import.meta.env.VITE_API_URL
 
 import { writable } from "svelte/store";
 
-export const username = writable<string>('User');
+export const username = writable<string|null>('User');
+
+
 
 export interface Message{
     username: string;
@@ -82,7 +84,7 @@ export async function getSchedule(username:string): Promise<Schedule | null>{
         'Content-Type': 'application/json',
         }
     })
-    return response.json();
+    return response.json()
 }
 
 export async function createSchedule(username:string): Promise<Schedule>{

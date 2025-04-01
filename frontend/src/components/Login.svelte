@@ -2,6 +2,7 @@
     import { loginStatus, setLoggedIn } from "../api";
     import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription, DialogClose } from '../lib/components/ui/dialog';
     let activeTab = "";
+    import { username } from "../api";
 
     let showLoginDialog = false;
     let showRegisterDialog = false;
@@ -16,10 +17,11 @@
     setLoggedIn(true);
     showLoginDialog = false;
   };
-
+  let tname='';
   const confirmRegister = () => {
     setLoggedIn(true);
     showRegisterDialog = false;
+    username.set(tname);
   };
 
   const handleSignOut = () => {
@@ -60,7 +62,7 @@
     <DialogContent>
       <DialogTitle>Register</DialogTitle>
       <DialogDescription>Create an account</DialogDescription>
-      <input type="text" placeholder="Username" class="border p-2 w-full rounded" />
+      <input type="text" placeholder="Username" class="border p-2 w-full rounded" bind:value={tname}/>
       <input type="password" placeholder="Password" class="border p-2 w-full rounded mt-2" />
       <DialogClose>
         <button on:click={confirmRegister} class="bg-purple-600 text-white px-4 py-2 rounded w-full mt-4">
