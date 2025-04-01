@@ -1,5 +1,7 @@
 <script lang="ts">
     let activeTab = "";
+
+
 </script>
 
 <div class="login-register-container">

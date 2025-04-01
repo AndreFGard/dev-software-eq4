@@ -1,5 +1,5 @@
 <script>
-  export let loggedin = false; 
+  import { loginStatus, setLoggedIn } from "../api"
 
   import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription, DialogClose } from '../lib/components/ui/dialog';
 
@@ -13,15 +13,29 @@
   const handleRegister = () => {
     showRegisterDialog = true;};
 
-  let handleSignOut = () => loggedin = false;
-  ;
+    const confirmLogin = () => {
+    setLoggedIn(true);
+    showLoginDialog = false;
+  };
+
+  const confirmRegister = () => {
+    setLoggedIn(true);
+    showRegisterDialog = false;
+  };
+
+  const handleSignOut = () => {
+    setLoggedIn(false);
+    showRegisterDialog = false;
+    showLoginDialog = false;
+
+  };
 </script>
 
 <div class="topbar flex items-center justify-between bg-white-900 text-white p-4 border-b-2 border-sky-600">
   <div class="w-[60%] mx-auto flex justify-between items-center">
     <h1 class="text-3xl font-bold text-sky-600">Mape.ia✈️</h1>
     <div class="flex space-x-2 ml-auto">
-      {#if !loggedin}
+      {#if $loginStatus == false}
 
       <Dialog bind:open={showLoginDialog}>
         <DialogTrigger>
@@ -37,7 +51,7 @@
         <input type="text" placeholder="Username" class="border p-2 w-full rounded" />
         <input type="password" placeholder="Password" class="border p-2 w-full rounded mt-2" />
         <DialogClose>
-          <button on:click={() => loggedin = true} class="bg-purple-600 text-white px-4 py-2 rounded w-full mt-4">
+          <button on:click={confirmLogin} class="bg-purple-600 text-white px-4 py-2 rounded w-full mt-4">
             Login
           </button>
         </DialogClose>
@@ -58,7 +72,7 @@
         <input type="text" placeholder="Username" class="border p-2 w-full rounded" />
         <input type="password" placeholder="Password" class="border p-2 w-full rounded mt-2" />
         <DialogClose>
-          <button on:click={() => loggedin = true} class="bg-purple-600 text-white px-4 py-2 rounded w-full mt-4">
+          <button on:click={confirmRegister} class="bg-purple-600 text-white px-4 py-2 rounded w-full mt-4">
             Create account
           </button>
         </DialogClose>

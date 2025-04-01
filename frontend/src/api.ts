@@ -95,6 +95,14 @@ export async function createSchedule(username:string): Promise<Schedule>{
     return response.json()
 }
 
+// Variável reativa para armazenar o status de login
+export const loginStatus = writable(false);
+
+// Função para alterar o status de login
+export function setLoggedIn(status: boolean) {
+    loginStatus.set(status);
+}
+
 
 export interface Activity{
     name: string;
